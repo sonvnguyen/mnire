@@ -1,0 +1,3026 @@
+100 methods having +20 LOC and MNick worked well on them
+
+Format:
+//MNick predicted: {predicted name}
+//class: {enclosing class}
+{Method}
+
+
+//MNick predicted: collect object
+//class: HibernateCollectionAdapter
+protected Object collectObject(Entry entry,Object forUpdate) throws Exception {
+  boolean create=false;
+  Class clazz=Class.forName((String)config.getProperty(ENTRY_MAPPING_CLASS_NAME));
+  if (forUpdate == null) {
+    forUpdate=clazz.newInstance();
+    create=true;
+  }
+  for (  Field field : clazz.getDeclaredFields()) {
+    if (create && field.getName().equals(ENTRY_ELEM_NAME_ID)) {
+      collectField(field,clazz,forUpdate,entry.getId().toString());
+    }
+ else     if (field.getName().equals(ENTRY_ELEM_NAME_AUTHOR)) {
+      collectField(field,clazz,forUpdate,entry.getAuthor().getName());
+    }
+ else     if (field.getName().equals(ENTRY_ELEM_NAME_TITLE)) {
+      collectField(field,clazz,forUpdate,entry.getTitle());
+    }
+ else     if (field.getName().equals(ENTRY_ELEM_NAME_UPDATED)) {
+      collectField(field,clazz,forUpdate,entry.getUpdated());
+    }
+ else     if (field.getName().equals(ENTRY_ELEM_NAME_CONTENT)) {
+      collectField(field,clazz,forUpdate,entry.getContent());
+    }
+  }
+  return forUpdate;
+}
+
+
+---------------
+//MNick predicted: to unicode
+//class: IDNA
+public static String toUnicode(String regname){
+  if (regname == null)   return null;
+  if (regname.length() == 0)   return regname;
+  String[] labels=regname.split("\\\u002E");
+  StringBuilder buf=new StringBuilder();
+  for (  String label : labels) {
+    char[] chars=label.toCharArray();
+    if (!CharUtils.inRange(chars,(char)0x000,(char)0x007F)) {
+      label=Nameprep.prep(label);
+      chars=label.toCharArray();
+    }
+    if (label.startsWith("xn--")) {
+      label=Punycode.decode(label.substring(4));
+      chars=label.toCharArray();
+    }
+    if (buf.length() > 0)     buf.append('\u002E');
+    buf.append(chars);
+  }
+  String check=toASCII(buf.toString());
+  if (check.equalsIgnoreCase(regname))   return buf.toString();
+ else   return regname;
+}
+
+---------------
+//MNick predicted: normalize
+//class: IRI
+protected static String normalize(String path){
+  if (path == null || path.length() == 0)   return "/";
+  String[] segments=path.split("/");
+  if (segments.length < 2)   return path;
+  StringBuilder buf=new StringBuilder("/");
+  for (int n=0; n < segments.length; n++) {
+    String segment=segments[n].intern();
+    if (segment == ".") {
+      segments[n]=null;
+    }
+ else     if (segment == "..") {
+      segments[n]=null;
+      int i=n;
+      while (--i > -1) {
+        if (segments[i] != null)         break;
+      }
+      if (i > -1)       segments[i]=null;
+    }
+  }
+  for (int n=0; n < segments.length; n++) {
+    if (segments[n] != null) {
+      if (buf.length() > 1)       buf.append('/');
+      buf.append(UrlEncoding.encode(UrlEncoding.decode(segments[n]),Profile.IPATHNODELIMS_SEG.filter()));
+    }
+  }
+  if (path.endsWith("/") || path.endsWith("/."))   buf.append('/');
+  return buf.toString();
+}
+
+---------------
+//MNick predicted: encode
+//class: UrlEncoding
+public static String encode(CharSequence s,String enc,Filter... filters) throws UnsupportedEncodingException {
+  if (s == null)   return null;
+  StringBuilder sb=new StringBuilder();
+  for (int n=0; n < s.length(); n++) {
+    char c=s.charAt(n);
+    if (!CharUtils.isHighSurrogate(c) && check(c,filters)) {
+      encode(sb,String.valueOf(c).getBytes(enc));
+    }
+ else     if (CharUtils.isHighSurrogate(c)) {
+      if (check(c,filters)) {
+        StringBuilder buf=new StringBuilder();
+        buf.append(c);
+        buf.append(s.charAt(++n));
+        byte[] b=buf.toString().getBytes(enc);
+        encode(sb,b);
+      }
+ else {
+        sb.append(c);
+        sb.append(s.charAt(++n));
+      }
+    }
+ else {
+      sb.append(c);
+    }
+  }
+  return sb.toString();
+}
+
+---------------
+//MNick predicted: sign
+//class: OAuthScheme
+private String sign(String method,String baseString,Certificate cert) throws AuthenticationException {
+  if (method.equalsIgnoreCase("HMAC-MD5") || method.equalsIgnoreCase("HMAC-SHA1")) {
+    try {
+      String[] tokens=method.split("-");
+      String methodName=tokens[0].substring(0,1).toUpperCase() + tokens[0].substring(1).toLowerCase() + tokens[1];
+      KeyGenerator kg=KeyGenerator.getInstance(methodName);
+      Mac mac=Mac.getInstance(kg.getAlgorithm());
+      mac.init(kg.generateKey());
+      byte[] result=mac.doFinal(baseString.getBytes());
+      return new String(Base64.encodeBase64(result));
+    }
+ catch (    Exception e) {
+      throw new AuthenticationException(e.getMessage(),e);
+    }
+  }
+ else   if (method.equalsIgnoreCase("md5")) {
+    return new String(Base64.encodeBase64(DigestUtils.md5(baseString)));
+  }
+ else   if (method.equalsIgnoreCase("sha1")) {
+    return new String(Base64.encodeBase64(DigestUtils.sha(baseString)));
+  }
+ else   if (method.equalsIgnoreCase("RSA-SHA1")) {
+    if (cert == null) {
+      throw new AuthenticationException("a cert is mandatory to use SHA1 with RSA");
+    }
+    try {
+      Cipher cipher=Cipher.getInstance("SHA1withRSA");
+      cipher.init(Cipher.ENCRYPT_MODE,cert);
+      byte[] result=cipher.doFinal(baseString.getBytes());
+      return new String(Base64.encodeBase64(result));
+    }
+ catch (    Exception e) {
+      throw new AuthenticationException(e.getMessage(),e);
+    }
+  }
+ else {
+    throw new AuthenticationException("unsupported algorithm method: " + method);
+  }
+}
+
+---------------
+//MNick predicted: write common
+//class: BaseSerializer
+@SuppressWarnings("deprecation") protected void writeCommon(Object source,ObjectContext objectContext,SerializationContext context,Conventions conventions){
+  StreamWriter sw=context.getStreamWriter();
+  String lang=null;
+  AccessibleObject accessor=objectContext.getAccessor(Language.class,conventions);
+  if (accessor != null) {
+    Object value=eval(accessor,source);
+    if (value != null) {
+      if (value instanceof Lang || value instanceof org.apache.abdera.i18n.lang.Lang) {
+        lang=value.toString();
+      }
+ else {
+        lang=toString(value);
+      }
+    }
+  }
+  if (lang == null) {
+    Language _lang=objectContext.getAnnotation(Language.class);
+    if (_lang != null && !_lang.value().equals(DEFAULT)) {
+      lang=_lang.value();
+    }
+  }
+  if (lang != null)   sw.writeLanguage(lang);
+  String base=null;
+  accessor=objectContext.getAccessor(BaseURI.class,conventions);
+  if (accessor != null) {
+    Object value=eval(accessor,source);
+    if (value != null)     base=toString(value);
+  }
+  if (base != null)   sw.writeBase(base);
+}
+
+---------------
+//MNick predicted: is valid signature
+//class: XmlSignature
+private boolean is_valid_signature(XMLSignature sig,SignatureOptions options) throws XMLSignatureException, XMLSecurityException {
+  KeyInfo ki=sig.getKeyInfo();
+  if (ki != null) {
+    X509Certificate cert=ki.getX509Certificate();
+    if (cert != null) {
+      return sig.checkSignatureValue(cert);
+    }
+ else {
+      PublicKey key=ki.getPublicKey();
+      if (key != null) {
+        return sig.checkSignatureValue(key);
+      }
+    }
+  }
+ else   if (options != null) {
+    PublicKey key=options.getPublicKey();
+    X509Certificate cert=options.getCertificate();
+    if (key != null)     return sig.checkSignatureValue(key);
+    if (cert != null)     return sig.checkSignatureValue(cert);
+  }
+  return false;
+}
+
+---------------
+//MNick predicted: remove invalid signatures
+//class: XmlSignature
+@SuppressWarnings("unchecked") public <T extends Element>T removeInvalidSignatures(T element,SignatureOptions options) throws SecurityException {
+  List<org.w3c.dom.Element> remove=new ArrayList<org.w3c.dom.Element>();
+  org.w3c.dom.Element dom=fomToDom((Element)element,options);
+  NodeList children=dom.getChildNodes();
+  for (int n=0; n < children.getLength(); n++) {
+    try {
+      Node node=children.item(n);
+      if (node.getNodeType() == Node.ELEMENT_NODE) {
+        org.w3c.dom.Element el=(org.w3c.dom.Element)node;
+        if (Constants.DSIG_NS.equals(el.getNamespaceURI()) && Constants.LN_SIGNATURE.equals(el.getLocalName())) {
+          IRI baseUri=element.getResolvedBaseUri();
+          XMLSignature sig=new XMLSignature(el,(baseUri != null) ? baseUri.toString() : "");
+          if (!is_valid_signature(sig,options)) {
+            remove.add(el);
+          }
+        }
+      }
+    }
+ catch (    Exception e) {
+    }
+  }
+  for (  org.w3c.dom.Element el : remove)   dom.removeChild(el);
+  return (T)domToFom(dom,options);
+}
+
+---------------
+//MNick predicted: put entry
+//class: SimpleAdapter
+public ResponseContext putEntry(RequestContext request){
+  Abdera abdera=request.getAbdera();
+  Entry orig_entry=getAbderaEntry(request);
+  if (orig_entry != null) {
+    try {
+      Document<Entry> entry_doc=(Document<Entry>)request.getDocument(abdera.getParser()).clone();
+      if (entry_doc != null) {
+        Entry entry=entry_doc.getRoot();
+        if (!entry.getId().equals(orig_entry.getId()))         return ProviderHelper.conflict(request);
+        if (!ProviderHelper.isValidEntry(entry))         return ProviderHelper.badrequest(request);
+        setEntryDetails(request,entry,orig_entry.getId().toString());
+        orig_entry.discard();
+        Feed feed=getFeedDocument(request).getRoot();
+        feed.insertEntry(entry);
+        feed.setUpdated(new Date());
+        return ProviderHelper.nocontent();
+      }
+ else {
+        return ProviderHelper.badrequest(request);
+      }
+    }
+ catch (    ParseException pe) {
+      return ProviderHelper.notsupported(request);
+    }
+catch (    ClassCastException cce) {
+      return ProviderHelper.notsupported(request);
+    }
+catch (    Exception e) {
+      return ProviderHelper.badrequest(request);
+    }
+  }
+ else {
+    return ProviderHelper.notfound(request);
+  }
+}
+
+---------------
+//MNick predicted: put entry
+//class: SimpleAdapter
+public ResponseContext putEntry(RequestContext request){
+  Abdera abdera=request.getAbdera();
+  Entry orig_entry=getAbderaEntry(request);
+  if (orig_entry != null) {
+    try {
+      Document<Entry> entry_doc=(Document<Entry>)request.getDocument(abdera.getParser()).clone();
+      if (entry_doc != null) {
+        Entry entry=entry_doc.getRoot();
+        if (!entry.getId().equals(orig_entry.getId()))         return ProviderHelper.conflict(request);
+        if (!ProviderHelper.isValidEntry(entry))         return ProviderHelper.badrequest(request);
+        setEntryDetails(request,entry,orig_entry.getId().toString());
+        orig_entry.discard();
+        Feed feed=getFeedDocument(request).getRoot();
+        feed.insertEntry(entry);
+        feed.setUpdated(new Date());
+        return ProviderHelper.nocontent();
+      }
+ else {
+        return ProviderHelper.badrequest(request);
+      }
+    }
+ catch (    ParseException pe) {
+      return ProviderHelper.notsupported(request);
+    }
+catch (    ClassCastException cce) {
+      return ProviderHelper.notsupported(request);
+    }
+catch (    Exception e) {
+      return ProviderHelper.badrequest(request);
+    }
+  }
+ else {
+    return ProviderHelper.notfound(request);
+  }
+}
+
+---------------
+//MNick predicted: get and register
+//class: AbstractSingleBeanDefinitionParser
+protected String getAndRegister(ParserContext ctx,BeanDefinitionBuilder bean,Element el){
+  String id;
+  BeanDefinition child;
+  if (el.getNamespaceURI().equals(BeanDefinitionParserDelegate.BEANS_NAMESPACE_URI)) {
+    String name=el.getLocalName();
+    if ("ref".equals(name)) {
+      id=el.getAttribute("bean");
+      if (id == null) {
+        throw new IllegalStateException("<ref> elements must have a \"bean\" attribute!");
+      }
+      return id;
+    }
+ else     if ("bean".equals(name)) {
+      BeanDefinitionHolder bdh=ctx.getDelegate().parseBeanDefinitionElement(el);
+      child=bdh.getBeanDefinition();
+      id=bdh.getBeanName();
+    }
+ else {
+      throw new UnsupportedOperationException("Elements with the name " + name + " are not currently "+ "supported as sub elements of "+ el.getParentNode().getLocalName());
+    }
+  }
+ else {
+    child=ctx.getDelegate().parseCustomElement(el,bean.getBeanDefinition());
+    id=child.toString();
+  }
+  ctx.getRegistry().registerBeanDefinition(id,child);
+  return id;
+}
+
+---------------
+//MNick predicted: find max
+//class: FindMax
+private static Text _findMax(Scanner scanner,Text start,boolean inclStart,Text end,boolean inclEnd){
+  int cmp=start.compareTo(end);
+  if (cmp >= 0) {
+    if (inclStart && inclEnd && cmp == 0) {
+      scanner.setRange(new Range(start,true,end,true));
+      Iterator<Entry<Key,Value>> iter=scanner.iterator();
+      if (iter.hasNext())       return iter.next().getKey().getRow();
+    }
+    return null;
+  }
+  Text mid=findMidPoint(start,end);
+  scanner.setRange(new Range(mid,mid.equals(start) ? inclStart : true,end,inclEnd));
+  Iterator<Entry<Key,Value>> iter=scanner.iterator();
+  if (iter.hasNext()) {
+    Key next=iter.next().getKey();
+    int count=0;
+    while (count < 10 && iter.hasNext()) {
+      next=iter.next().getKey();
+      count++;
+    }
+    if (!iter.hasNext())     return next.getRow();
+    Text ret=_findMax(scanner,next.followingKey(PartialKey.ROW).getRow(),true,end,inclEnd);
+    if (ret == null)     return next.getRow();
+ else     return ret;
+  }
+ else {
+    return _findMax(scanner,start,inclStart,mid,mid.equals(start) ? inclStart : false);
+  }
+}
+
+---------------
+//MNick predicted: filter invalid
+//class: BulkImport
+private static List<FileStatus> filterInvalid(FileStatus[] files){
+  ArrayList<FileStatus> fileList=new ArrayList<>(files.length);
+  for (  FileStatus fileStatus : files) {
+    String fname=fileStatus.getPath().getName();
+    if (fname.equals("_SUCCESS") || fname.equals("_logs")) {
+      log.debug("Ignoring file likely created by map reduce : {}",fileStatus.getPath());
+      continue;
+    }
+    if (fileStatus.isDirectory()) {
+      log.warn("{} is a directory, ignoring.",fileStatus.getPath());
+      continue;
+    }
+    String sa[]=fname.split("\\.");
+    String extension="";
+    if (sa.length > 1) {
+      extension=sa[sa.length - 1];
+    }
+    if (!FileOperations.getValidExtensions().contains(extension)) {
+      log.warn("{} does not have a valid extension, ignoring",fileStatus.getPath());
+      continue;
+    }
+    fileList.add(fileStatus);
+  }
+  return fileList;
+}
+
+---------------
+//MNick predicted: dequeue
+//class: ConditionalWriterImpl
+private TabletServerMutations<QCMutation> dequeue(String location){
+  BlockingQueue<TabletServerMutations<QCMutation>> queue=getServerQueue(location).queue;
+  ArrayList<TabletServerMutations<QCMutation>> mutations=new ArrayList<>();
+  queue.drainTo(mutations);
+  if (mutations.size() == 0)   return null;
+  if (mutations.size() == 1) {
+    return mutations.get(0);
+  }
+ else {
+    TabletServerMutations<QCMutation> tsm=mutations.get(0);
+    for (int i=1; i < mutations.size(); i++) {
+      for (      Entry<KeyExtent,List<QCMutation>> entry : mutations.get(i).getMutations().entrySet()) {
+        List<QCMutation> list=tsm.getMutations().get(entry.getKey());
+        if (list == null) {
+          list=new ArrayList<>();
+          tsm.getMutations().put(entry.getKey(),list);
+        }
+        list.addAll(entry.getValue());
+      }
+    }
+    return tsm;
+  }
+}
+
+---------------
+//MNick predicted: get active compactions
+//class: InstanceOperationsImpl
+@Override public List<ActiveCompaction> getActiveCompactions(String tserver) throws AccumuloException, AccumuloSecurityException {
+  final HostAndPort parsedTserver=HostAndPort.fromString(tserver);
+  Client client=null;
+  try {
+    client=ThriftUtil.getTServerClient(parsedTserver,context);
+    List<ActiveCompaction> as=new ArrayList<>();
+    for (    org.apache.accumulo.core.tabletserver.thrift.ActiveCompaction activeCompaction : client.getActiveCompactions(Tracer.traceInfo(),context.rpcCreds())) {
+      as.add(new ActiveCompactionImpl(context,activeCompaction));
+    }
+    return as;
+  }
+ catch (  TTransportException e) {
+    throw new AccumuloException(e);
+  }
+catch (  ThriftSecurityException e) {
+    throw new AccumuloSecurityException(e.user,e.code,e);
+  }
+catch (  TException e) {
+    throw new AccumuloException(e);
+  }
+ finally {
+    if (client != null)     ThriftUtil.returnClient(client);
+  }
+}
+
+---------------
+//MNick predicted: execute raw void
+//class: ServerClient
+public static void executeRawVoid(ClientContext context,ClientExec<ClientService.Client> exec) throws Exception {
+  while (true) {
+    ClientService.Client client=null;
+    String server=null;
+    try {
+      Pair<String,Client> pair=ServerClient.getConnection(context);
+      server=pair.getFirst();
+      client=pair.getSecond();
+      exec.execute(client);
+      break;
+    }
+ catch (    TApplicationException tae) {
+      throw new AccumuloServerException(server,tae);
+    }
+catch (    TTransportException tte) {
+      log.debug("ClientService request failed " + server + ", retrying ... ",tte);
+      sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
+    }
+ finally {
+      if (client != null)       ServerClient.close(client);
+    }
+  }
+}
+
+
+---------------
+//MNick predicted: execute fate operation
+//class: TableOperationsImpl
+private void executeFateOperation(long opid,FateOperation op,List<ByteBuffer> args,Map<String,String> opts,boolean autoCleanUp) throws ThriftSecurityException, TException, ThriftTableOperationException {
+  while (true) {
+    MasterClientService.Iface client=null;
+    try {
+      client=MasterClient.getConnectionWithRetry(context);
+      client.executeFateOperation(Tracer.traceInfo(),context.rpcCreds(),opid,op,args,opts,autoCleanUp);
+      return;
+    }
+ catch (    TTransportException tte) {
+      log.debug("Failed to call executeFateOperation(), retrying ... ",tte);
+      sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
+    }
+catch (    ThriftNotActiveServiceException e) {
+      log.debug("Contacted a Master which is no longer active, retrying");
+      sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
+    }
+ finally {
+      MasterClient.close(client);
+    }
+  }
+}
+
+---------------
+//MNick predicted: locate tablet
+//class: TabletLocatorImpl
+@Override public TabletLocation locateTablet(ClientContext context,Text row,boolean skipRow,boolean retry) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+  OpTimer timer=null;
+  if (log.isTraceEnabled()) {
+    log.trace("tid={} Locating tablet  table={} row={} skipRow={} retry={}",Thread.currentThread().getId(),tableId,TextUtil.truncate(row),skipRow,retry);
+    timer=new OpTimer().start();
+  }
+  while (true) {
+    LockCheckerSession lcSession=new LockCheckerSession();
+    TabletLocation tl=_locateTablet(context,row,skipRow,retry,true,lcSession);
+    if (retry && tl == null) {
+      sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
+      if (log.isTraceEnabled())       log.trace("Failed to locate tablet containing row {} in table {}, will retry...",TextUtil.truncate(row),tableId);
+      continue;
+    }
+    if (timer != null) {
+      timer.stop();
+      log.trace("tid={} Located tablet {} at {} in {}",Thread.currentThread().getId(),(tl == null ? "null" : tl.tablet_extent),(tl == null ? "null" : tl.tablet_location),String.format("%.3f secs",timer.scale(TimeUnit.SECONDS)));
+    }
+    return tl;
+  }
+}
+
+---------------
+//MNick predicted: process invalidated
+//class: TabletLocatorImpl
+@SuppressFBWarnings(value={"UL_UNRELEASED_LOCK","UL_UNRELEASED_LOCK_EXCEPTION_PATH"},justification="locking is confusing, but probably correct") private void processInvalidated(ClientContext context,LockCheckerSession lcSession) throws AccumuloSecurityException, AccumuloException, TableNotFoundException {
+  if (badExtents.size() == 0)   return;
+  final boolean writeLockHeld=rwLock.isWriteLockedByCurrentThread();
+  try {
+    if (!writeLockHeld) {
+      rLock.unlock();
+      wLock.lock();
+      if (badExtents.size() == 0)       return;
+    }
+    List<Range> lookups=new ArrayList<>(badExtents.size());
+    for (    KeyExtent be : badExtents) {
+      lookups.add(be.toMetadataRange());
+      removeOverlapping(metaCache,be);
+    }
+    lookups=Range.mergeOverlapping(lookups);
+    Map<String,Map<KeyExtent,List<Range>>> binnedRanges=new HashMap<>();
+    parent.binRanges(context,lookups,binnedRanges);
+    ArrayList<String> tabletServers=new ArrayList<>(binnedRanges.keySet());
+    Collections.shuffle(tabletServers);
+    for (    String tserver : tabletServers) {
+      List<TabletLocation> locations=locationObtainer.lookupTablets(context,tserver,binnedRanges.get(tserver),parent);
+      for (      TabletLocation tabletLocation : locations) {
+        updateCache(tabletLocation,lcSession);
+      }
+    }
+  }
+  finally {
+    if (!writeLockHeld) {
+      rLock.lock();
+      wLock.unlock();
+    }
+  }
+}
+
+---------------
+//MNick predicted: bin ranges
+//class: TabletServerBatchReaderIterator
+private void binRanges(TabletLocator tabletLocator,List<Range> ranges,Map<String,Map<KeyExtent,List<Range>>> binnedRanges) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+  int lastFailureSize=Integer.MAX_VALUE;
+  while (true) {
+    binnedRanges.clear();
+    List<Range> failures=tabletLocator.binRanges(context,ranges,binnedRanges);
+    if (failures.size() > 0) {
+      if (failures.size() >= lastFailureSize)       if (!Tables.exists(context,tableId))       throw new TableDeletedException(tableId.canonicalID());
+ else       if (Tables.getTableState(context,tableId) == TableState.OFFLINE)       throw new TableOfflineException(Tables.getTableOfflineMsg(context,tableId));
+      lastFailureSize=failures.size();
+      if (log.isTraceEnabled())       log.trace("Failed to bin {} ranges, tablet locations were null, retrying in 100ms",failures.size());
+      try {
+        Thread.sleep(100);
+      }
+ catch (      InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+ else {
+      break;
+    }
+  }
+  Map<String,Map<KeyExtent,List<Range>>> binnedRanges2=new HashMap<>();
+  for (  Entry<String,Map<KeyExtent,List<Range>>> entry : binnedRanges.entrySet()) {
+    Map<KeyExtent,List<Range>> tabletMap=new HashMap<>();
+    binnedRanges2.put(entry.getKey(),tabletMap);
+    for (    Entry<KeyExtent,List<Range>> tabletRanges : entry.getValue().entrySet()) {
+      Range tabletRange=tabletRanges.getKey().toDataRange();
+      List<Range> clippedRanges=new ArrayList<>();
+      tabletMap.put(tabletRanges.getKey(),clippedRanges);
+      for (      Range range : tabletRanges.getValue())       clippedRanges.add(tabletRange.clip(range));
+    }
+  }
+  binnedRanges.clear();
+  binnedRanges.putAll(binnedRanges2);
+}
+
+---------------
+//MNick predicted: flush
+//class: TabletServerBatchWriter
+public synchronized void flush() throws MutationsRejectedException {
+  if (closed)   throw new IllegalStateException("Closed");
+  Span span=Trace.start("flush");
+  try {
+    checkForFailures();
+    if (flushing) {
+      waitRTE(() -> flushing && !somethingFailed);
+      checkForFailures();
+      return;
+    }
+    flushing=true;
+    startProcessing();
+    checkForFailures();
+    waitRTE(() -> totalMemUsed > 0 && !somethingFailed);
+    flushing=false;
+    this.notifyAll();
+    checkForFailures();
+  }
+  finally {
+    span.stop();
+  }
+}
+
+---------------
+//MNick predicted: to string
+//class: ThriftSecurityException
+@Override public java.lang.String toString(){
+  java.lang.StringBuilder sb=new java.lang.StringBuilder("ThriftSecurityException(");
+  boolean first=true;
+  sb.append("user:");
+  if (this.user == null) {
+    sb.append("null");
+  }
+ else {
+    sb.append(this.user);
+  }
+  first=false;
+  if (!first)   sb.append(", ");
+  sb.append("code:");
+  if (this.code == null) {
+    sb.append("null");
+  }
+ else {
+    sb.append(this.code);
+  }
+  first=false;
+  sb.append(")");
+  return sb.toString();
+}
+
+---------------
+//MNick predicted: shutdown
+//class: ThriftTransportPool
+private void shutdown(){
+  Thread ctl;
+synchronized (this) {
+    if (cache == null)     return;
+    for (    CachedConnections cachedConn : getCache().values()) {
+      for (      CachedConnection cc : Iterables.concat(cachedConn.reserved.values(),cachedConn.unreserved)) {
+        try {
+          cc.transport.close();
+        }
+ catch (        Exception e) {
+          log.debug("Error closing transport during shutdown",e);
+        }
+      }
+    }
+    this.cache=null;
+    ctl=checkThread;
+  }
+  if (ctl != null) {
+    try {
+      ctl.interrupt();
+      ctl.join();
+    }
+ catch (    InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
+}
+
+---------------
+//MNick predicted: write
+//class: Column
+@Override public void write(DataOutput out) throws IOException {
+  if (columnFamily == null) {
+    out.writeBoolean(false);
+  }
+ else {
+    out.writeBoolean(true);
+    out.writeInt(columnFamily.length);
+    out.write(columnFamily);
+  }
+  if (columnQualifier == null) {
+    out.writeBoolean(false);
+  }
+ else {
+    out.writeBoolean(true);
+    out.writeInt(columnQualifier.length);
+    out.write(columnQualifier);
+  }
+  if (columnVisibility == null) {
+    out.writeBoolean(false);
+  }
+ else {
+    out.writeBoolean(true);
+    out.writeInt(columnVisibility.length);
+    out.write(columnVisibility);
+  }
+}
+
+---------------
+//MNick predicted: find overlapping
+//class: KeyExtent
+public static Set<KeyExtent> findOverlapping(KeyExtent nke,SortedSet<KeyExtent> extents){
+  if (nke == null || extents == null || extents.isEmpty())   return Collections.emptySet();
+  SortedSet<KeyExtent> start;
+  if (nke.getPrevEndRow() != null) {
+    Text row=rowAfterPrevRow(nke);
+    KeyExtent lookupKey=new KeyExtent(nke.getTableId(),row,null);
+    start=extents.tailSet(lookupKey);
+  }
+ else {
+    KeyExtent lookupKey=new KeyExtent(nke.getTableId(),new Text(),null);
+    start=extents.tailSet(lookupKey);
+  }
+  TreeSet<KeyExtent> result=new TreeSet<>();
+  for (  KeyExtent ke : start) {
+    if (startsAfter(nke,ke)) {
+      break;
+    }
+    result.add(ke);
+  }
+  return result;
+}
+
+
+---------------
+//MNick predicted: compare to
+//class: TKeyValue
+@Override public int compareTo(TKeyValue other){
+  if (!getClass().equals(other.getClass())) {
+    return getClass().getName().compareTo(other.getClass().getName());
+  }
+  int lastComparison=0;
+  lastComparison=java.lang.Boolean.valueOf(isSetKey()).compareTo(other.isSetKey());
+  if (lastComparison != 0) {
+    return lastComparison;
+  }
+  if (isSetKey()) {
+    lastComparison=org.apache.thrift.TBaseHelper.compareTo(this.key,other.key);
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+  }
+  lastComparison=java.lang.Boolean.valueOf(isSetValue()).compareTo(other.isSetValue());
+  if (lastComparison != 0) {
+    return lastComparison;
+  }
+  if (isSetValue()) {
+    lastComparison=org.apache.thrift.TBaseHelper.compareTo(this.value,other.value);
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+  }
+  return 0;
+}
+
+---------------
+//MNick predicted: compare to
+//class: TRowRange
+@Override public int compareTo(TRowRange other){
+  if (!getClass().equals(other.getClass())) {
+    return getClass().getName().compareTo(other.getClass().getName());
+  }
+  int lastComparison=0;
+  lastComparison=java.lang.Boolean.valueOf(isSetStartRow()).compareTo(other.isSetStartRow());
+  if (lastComparison != 0) {
+    return lastComparison;
+  }
+  if (isSetStartRow()) {
+    lastComparison=org.apache.thrift.TBaseHelper.compareTo(this.startRow,other.startRow);
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+  }
+  lastComparison=java.lang.Boolean.valueOf(isSetEndRow()).compareTo(other.isSetEndRow());
+  if (lastComparison != 0) {
+    return lastComparison;
+  }
+  if (isSetEndRow()) {
+    lastComparison=org.apache.thrift.TBaseHelper.compareTo(this.endRow,other.endRow);
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+  }
+  return 0;
+}
+
+---------------
+//MNick predicted: equals
+//class: TSummarizerConfiguration
+public boolean equals(TSummarizerConfiguration that){
+  if (that == null)   return false;
+  if (this == that)   return true;
+  boolean this_present_classname=true && this.isSetClassname();
+  boolean that_present_classname=true && that.isSetClassname();
+  if (this_present_classname || that_present_classname) {
+    if (!(this_present_classname && that_present_classname))     return false;
+    if (!this.classname.equals(that.classname))     return false;
+  }
+  boolean this_present_options=true && this.isSetOptions();
+  boolean that_present_options=true && that.isSetOptions();
+  if (this_present_options || that_present_options) {
+    if (!(this_present_options && that_present_options))     return false;
+    if (!this.options.equals(that.options))     return false;
+  }
+  boolean this_present_configId=true && this.isSetConfigId();
+  boolean that_present_configId=true && that.isSetConfigId();
+  if (this_present_configId || that_present_configId) {
+    if (!(this_present_configId && that_present_configId))     return false;
+    if (!this.configId.equals(that.configId))     return false;
+  }
+  return true;
+}
+
+---------------
+//MNick predicted: to string
+//class: TSummary
+@Override public java.lang.String toString(){
+  java.lang.StringBuilder sb=new java.lang.StringBuilder("TSummary(");
+  boolean first=true;
+  sb.append("summary:");
+  if (this.summary == null) {
+    sb.append("null");
+  }
+ else {
+    sb.append(this.summary);
+  }
+  first=false;
+  if (!first)   sb.append(", ");
+  sb.append("config:");
+  if (this.config == null) {
+    sb.append("null");
+  }
+ else {
+    sb.append(this.config);
+  }
+  first=false;
+  if (!first)   sb.append(", ");
+  sb.append("filesContaining:");
+  sb.append(this.filesContaining);
+  first=false;
+  if (!first)   sb.append(", ");
+  sb.append("filesExceeding:");
+  sb.append(this.filesExceeding);
+  first=false;
+  if (!first)   sb.append(", ");
+  sb.append("filesLarge:");
+  sb.append(this.filesLarge);
+  first=false;
+  sb.append(")");
+  return sb.toString();
+}
+
+---------------
+//MNick predicted: get block
+//class: SynchronousLoadingBlockCache
+@Override public CacheEntry getBlock(String blockName,Loader loader){
+  CacheEntry ce=getBlock(blockName);
+  if (ce != null) {
+    return ce;
+  }
+  Map<String,byte[]> depData=resolveDependencies(loader.getDependencies());
+  if (depData == null) {
+    return null;
+  }
+  int lockIndex=(blockName.hashCode() & 0x7fffffff) % loadLocks.length;
+  Lock loadLock=loadLocks[lockIndex];
+  try {
+    loadLock.lock();
+    ce=getBlockNoStats(blockName);
+    if (ce != null) {
+      return ce;
+    }
+    byte[] data=loader.load(getMaxEntrySize(),depData);
+    if (data == null) {
+      return null;
+    }
+    return cacheBlock(blockName,data);
+  }
+  finally {
+    loadLock.unlock();
+  }
+}
+
+---------------
+//MNick predicted: load iterators
+//class: IteratorUtil
+public static <K extends WritableComparable<?>,V extends Writable>SortedKeyValueIterator<K,V> loadIterators(SortedKeyValueIterator<K,V> source,Collection<IterInfo> iters,Map<String,Map<String,String>> iterOpts,IteratorEnvironment env,boolean useAccumuloClassLoader,String context,Map<String,Class<? extends SortedKeyValueIterator<K,V>>> classCache) throws IOException {
+  SortedKeyValueIterator<K,V> prev=source;
+  try {
+    for (    IterInfo iterInfo : iters) {
+      Class<? extends SortedKeyValueIterator<K,V>> clazz=null;
+      log.trace("Attempting to load iterator class {}",iterInfo.className);
+      if (classCache != null) {
+        clazz=classCache.get(iterInfo.className);
+        if (clazz == null) {
+          clazz=loadClass(useAccumuloClassLoader,context,iterInfo);
+          classCache.put(iterInfo.className,clazz);
+        }
+      }
+ else {
+        clazz=loadClass(useAccumuloClassLoader,context,iterInfo);
+      }
+      SortedKeyValueIterator<K,V> skvi=clazz.newInstance();
+      Map<String,String> options=iterOpts.get(iterInfo.iterName);
+      if (options == null)       options=Collections.emptyMap();
+      skvi.init(prev,options,env);
+      prev=skvi;
+    }
+  }
+ catch (  ClassNotFoundException|IllegalAccessException|InstantiationException e) {
+    log.error(e.toString());
+    throw new RuntimeException(e);
+  }
+  return prev;
+}
+
+---------------
+//MNick predicted: seek
+//class: LargeRowFilter
+@Override public void seek(Range range,Collection<ByteSequence> columnFamilies,boolean inclusive) throws IOException {
+  if (inclusive && !columnFamilies.contains(EMPTY)) {
+    columnFamilies=new HashSet<>(columnFamilies);
+    columnFamilies.add(EMPTY);
+    dropEmptyColFams=true;
+  }
+ else   if (!inclusive && columnFamilies.contains(EMPTY)) {
+    columnFamilies=new HashSet<>(columnFamilies);
+    columnFamilies.remove(EMPTY);
+    dropEmptyColFams=true;
+  }
+ else {
+    dropEmptyColFams=false;
+  }
+  this.range=range;
+  this.columnFamilies=columnFamilies;
+  this.inclusive=inclusive;
+  if (range.getStartKey() != null) {
+    Range newRange=new Range(new Key(range.getStartKey().getRow()),true,range.getEndKey(),range.isEndKeyInclusive());
+    source.seek(newRange,columnFamilies,inclusive);
+    readNextRow();
+    while (currentPosition < keys.size() && range.beforeStartKey(keys.get(currentPosition)))     currentPosition++;
+    if (currentPosition == keys.size())     readNextRow();
+  }
+ else {
+    source.seek(range,columnFamilies,inclusive);
+    readNextRow();
+  }
+}
+
+---------------
+//MNick predicted: seek
+//class: RowDeletingIterator
+@Override public void seek(Range range,Collection<ByteSequence> columnFamilies,boolean inclusive) throws IOException {
+  if (inclusive && !columnFamilies.contains(EMPTY)) {
+    columnFamilies=new HashSet<>(columnFamilies);
+    columnFamilies.add(EMPTY);
+    dropEmptyColFams=true;
+  }
+ else   if (!inclusive && columnFamilies.contains(EMPTY)) {
+    columnFamilies=new HashSet<>(columnFamilies);
+    columnFamilies.remove(EMPTY);
+    dropEmptyColFams=true;
+  }
+ else {
+    dropEmptyColFams=false;
+  }
+  currentRowDeleted=false;
+  if (range.getStartKey() != null) {
+    Range newRange=new Range(new Key(range.getStartKey().getRow()),true,range.getEndKey(),range.isEndKeyInclusive());
+    source.seek(newRange,columnFamilies,inclusive);
+    consumeDeleted();
+    consumeEmptyColFams();
+    if (source.hasTop() && range.beforeStartKey(source.getTopKey())) {
+      source.seek(range,columnFamilies,inclusive);
+      consumeDeleted();
+      consumeEmptyColFams();
+    }
+  }
+ else {
+    source.seek(range,columnFamilies,inclusive);
+    consumeDeleted();
+    consumeEmptyColFams();
+  }
+}
+
+---------------
+//MNick predicted: validate options
+//class: TimestampFilter
+@Override public boolean validateOptions(Map<String,String> options){
+  if (!super.validateOptions(options))   return false;
+  boolean hasStart=false;
+  boolean hasEnd=false;
+  try {
+    if (options.containsKey(START)) {
+      hasStart=true;
+      String s=options.get(START);
+      if (s.startsWith(LONG_PREFIX))       Long.valueOf(s.substring(LONG_PREFIX.length()));
+ else       dateParser.parse(s);
+    }
+    if (options.containsKey(END)) {
+      hasEnd=true;
+      String s=options.get(END);
+      if (s.startsWith(LONG_PREFIX))       Long.valueOf(s.substring(LONG_PREFIX.length()));
+ else       dateParser.parse(s);
+    }
+    if (!hasStart && !hasEnd)     throw new IllegalArgumentException(START + " or " + END+ " must be specified");
+    if (options.get(START_INCL) != null)     Boolean.parseBoolean(options.get(START_INCL));
+    if (options.get(END_INCL) != null)     Boolean.parseBoolean(options.get(END_INCL));
+  }
+ catch (  Exception e) {
+    throw new IllegalArgumentException("invalid options",e);
+  }
+  return true;
+}
+
+---------------
+//MNick predicted: equals
+//class: BulkImportStatus
+public boolean equals(BulkImportStatus that){
+  if (that == null)   return false;
+  if (this == that)   return true;
+  boolean this_present_startTime=true;
+  boolean that_present_startTime=true;
+  if (this_present_startTime || that_present_startTime) {
+    if (!(this_present_startTime && that_present_startTime))     return false;
+    if (this.startTime != that.startTime)     return false;
+  }
+  boolean this_present_filename=true && this.isSetFilename();
+  boolean that_present_filename=true && that.isSetFilename();
+  if (this_present_filename || that_present_filename) {
+    if (!(this_present_filename && that_present_filename))     return false;
+    if (!this.filename.equals(that.filename))     return false;
+  }
+  boolean this_present_state=true && this.isSetState();
+  boolean that_present_state=true && that.isSetState();
+  if (this_present_state || that_present_state) {
+    if (!(this_present_state && that_present_state))     return false;
+    if (!this.state.equals(that.state))     return false;
+  }
+  return true;
+}
+
+---------------
+//MNick predicted: equals
+//class: DeadServer
+public boolean equals(DeadServer that){
+  if (that == null)   return false;
+  if (this == that)   return true;
+  boolean this_present_server=true && this.isSetServer();
+  boolean that_present_server=true && that.isSetServer();
+  if (this_present_server || that_present_server) {
+    if (!(this_present_server && that_present_server))     return false;
+    if (!this.server.equals(that.server))     return false;
+  }
+  boolean this_present_lastStatus=true;
+  boolean that_present_lastStatus=true;
+  if (this_present_lastStatus || that_present_lastStatus) {
+    if (!(this_present_lastStatus && that_present_lastStatus))     return false;
+    if (this.lastStatus != that.lastStatus)     return false;
+  }
+  boolean this_present_status=true && this.isSetStatus();
+  boolean that_present_status=true && that.isSetStatus();
+  if (this_present_status || that_present_status) {
+    if (!(this_present_status && that_present_status))     return false;
+    if (!this.status.equals(that.status))     return false;
+  }
+  return true;
+}
+
+---------------
+//MNick predicted: equals
+//class: RecoveryStatus
+public boolean equals(RecoveryStatus that){
+  if (that == null)   return false;
+  if (this == that)   return true;
+  boolean this_present_name=true && this.isSetName();
+  boolean that_present_name=true && that.isSetName();
+  if (this_present_name || that_present_name) {
+    if (!(this_present_name && that_present_name))     return false;
+    if (!this.name.equals(that.name))     return false;
+  }
+  boolean this_present_runtime=true;
+  boolean that_present_runtime=true;
+  if (this_present_runtime || that_present_runtime) {
+    if (!(this_present_runtime && that_present_runtime))     return false;
+    if (this.runtime != that.runtime)     return false;
+  }
+  boolean this_present_progress=true;
+  boolean that_present_progress=true;
+  if (this_present_progress || that_present_progress) {
+    if (!(this_present_progress && that_present_progress))     return false;
+    if (this.progress != that.progress)     return false;
+  }
+  return true;
+}
+
+
+---------------
+//MNick predicted: to string
+//class: TabletSplit
+@Override public java.lang.String toString(){
+  java.lang.StringBuilder sb=new java.lang.StringBuilder("TabletSplit(");
+  boolean first=true;
+  sb.append("oldTablet:");
+  if (this.oldTablet == null) {
+    sb.append("null");
+  }
+ else {
+    sb.append(this.oldTablet);
+  }
+  first=false;
+  if (!first)   sb.append(", ");
+  sb.append("newTablets:");
+  if (this.newTablets == null) {
+    sb.append("null");
+  }
+ else {
+    sb.append(this.newTablets);
+  }
+  first=false;
+  sb.append(")");
+  return sb.toString();
+}
+
+---------------
+//MNick predicted: to string
+//class: ReplicationCoordinatorException
+@Override public java.lang.String toString(){
+  java.lang.StringBuilder sb=new java.lang.StringBuilder("ReplicationCoordinatorException(");
+  boolean first=true;
+  sb.append("code:");
+  if (this.code == null) {
+    sb.append("null");
+  }
+ else {
+    sb.append(this.code);
+  }
+  first=false;
+  if (!first)   sb.append(", ");
+  sb.append("reason:");
+  if (this.reason == null) {
+    sb.append("null");
+  }
+ else {
+    sb.append(this.reason);
+  }
+  first=false;
+  sb.append(")");
+  return sb.toString();
+}
+
+---------------
+//MNick predicted: to string
+//class: TAuthenticationKey
+@Override public java.lang.String toString(){
+  java.lang.StringBuilder sb=new java.lang.StringBuilder("TAuthenticationKey(");
+  boolean first=true;
+  sb.append("secret:");
+  if (this.secret == null) {
+    sb.append("null");
+  }
+ else {
+    org.apache.thrift.TBaseHelper.toString(this.secret,sb);
+  }
+  first=false;
+  if (isSetKeyId()) {
+    if (!first)     sb.append(", ");
+    sb.append("keyId:");
+    sb.append(this.keyId);
+    first=false;
+  }
+  if (isSetExpirationDate()) {
+    if (!first)     sb.append(", ");
+    sb.append("expirationDate:");
+    sb.append(this.expirationDate);
+    first=false;
+  }
+  if (isSetCreationDate()) {
+    if (!first)     sb.append(", ");
+    sb.append("creationDate:");
+    sb.append(this.creationDate);
+    first=false;
+  }
+  sb.append(")");
+  return sb.toString();
+}
+
+---------------
+//MNick predicted: compare to
+//class: TDelegationToken
+@Override public int compareTo(TDelegationToken other){
+  if (!getClass().equals(other.getClass())) {
+    return getClass().getName().compareTo(other.getClass().getName());
+  }
+  int lastComparison=0;
+  lastComparison=java.lang.Boolean.valueOf(isSetPassword()).compareTo(other.isSetPassword());
+  if (lastComparison != 0) {
+    return lastComparison;
+  }
+  if (isSetPassword()) {
+    lastComparison=org.apache.thrift.TBaseHelper.compareTo(this.password,other.password);
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+  }
+  lastComparison=java.lang.Boolean.valueOf(isSetIdentifier()).compareTo(other.isSetIdentifier());
+  if (lastComparison != 0) {
+    return lastComparison;
+  }
+  if (isSetIdentifier()) {
+    lastComparison=org.apache.thrift.TBaseHelper.compareTo(this.identifier,other.identifier);
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+  }
+  return 0;
+}
+
+---------------
+//MNick predicted: get summarizer configs filtered
+//class: SummarizerConfigurationUtil
+private static List<SummarizerConfiguration> getSummarizerConfigsFiltered(SortedMap<String,String> sprops){
+  if (sprops.size() == 0) {
+    return Collections.emptyList();
+  }
+  SummarizerConfiguration.Builder builder=null;
+  List<SummarizerConfiguration> configs=new ArrayList<>();
+  final int preLen=Property.TABLE_SUMMARIZER_PREFIX.getKey().length();
+  for (  Entry<String,String> entry : sprops.entrySet()) {
+    String k=entry.getKey().substring(preLen);
+    String[] tokens=k.split("\\.");
+    String id=tokens[0];
+    if (tokens.length == 1) {
+      if (builder != null) {
+        configs.add(builder.build());
+      }
+      builder=SummarizerConfiguration.builder(entry.getValue()).setPropertyId(id);
+    }
+ else     if (tokens.length == 3 || tokens[1].equals("opt")) {
+      builder.addOption(tokens[2],entry.getValue());
+    }
+ else {
+      throw new IllegalArgumentException("Unable to parse summarizer property : " + k);
+    }
+  }
+  configs.add(builder.build());
+  return configs;
+}
+
+---------------
+//MNick predicted: to string
+//class: TSamplerConfiguration
+@Override public java.lang.String toString(){
+  java.lang.StringBuilder sb=new java.lang.StringBuilder("TSamplerConfiguration(");
+  boolean first=true;
+  sb.append("className:");
+  if (this.className == null) {
+    sb.append("null");
+  }
+ else {
+    sb.append(this.className);
+  }
+  first=false;
+  if (!first)   sb.append(", ");
+  sb.append("options:");
+  if (this.options == null) {
+    sb.append("null");
+  }
+ else {
+    sb.append(this.options);
+  }
+  first=false;
+  sb.append(")");
+  return sb.toString();
+}
+
+---------------
+//MNick predicted: load span receivers
+//class: DistributedTrace
+private static synchronized void loadSpanReceivers(Configuration conf){
+  if (!receivers.isEmpty()) {
+    log.info("Already loaded span receivers, enable tracing does not need to be called again");
+    return;
+  }
+  String[] receiverNames=conf.getTrimmedStrings(Property.TRACE_SPAN_RECEIVERS.toString());
+  if (receiverNames == null || receiverNames.length == 0) {
+    return;
+  }
+  for (  String className : receiverNames) {
+    SpanReceiverBuilder builder=new SpanReceiverBuilder(wrapHadoopConf(conf));
+    SpanReceiver rcvr=builder.spanReceiverClass(className.trim()).build();
+    if (rcvr == null) {
+      log.warn("Failed to load SpanReceiver {}",className);
+    }
+ else {
+      receivers.add(rcvr);
+      log.debug("SpanReceiver {} was loaded successfully.",className);
+    }
+  }
+  for (  SpanReceiver rcvr : receivers) {
+    org.apache.htrace.Trace.addReceiver(rcvr);
+  }
+}
+
+---------------
+//MNick predicted: merge many
+//class: Merge
+protected long mergeMany(AccumuloClient client,String table,List<Size> sizes,long goalSize,boolean force,boolean last) throws MergeException {
+  while (!sizes.isEmpty()) {
+    if (sizes.get(0).size < goalSize)     break;
+    sizes.remove(0);
+  }
+  if (sizes.isEmpty()) {
+    return 0;
+  }
+  long mergeSize=0;
+  int numToMerge=0;
+  for (int i=0; i < sizes.size(); i++) {
+    if (mergeSize + sizes.get(i).size > goalSize) {
+      numToMerge=i;
+      break;
+    }
+    mergeSize+=sizes.get(i).size;
+  }
+  if (numToMerge > 1) {
+    mergeSome(client,table,sizes,numToMerge);
+  }
+ else {
+    if (numToMerge == 1 && sizes.size() > 1) {
+      if (force) {
+        mergeSome(client,table,sizes,2);
+      }
+ else {
+        sizes.remove(0);
+      }
+    }
+  }
+  if (numToMerge == 0 && sizes.size() > 1 && last) {
+    mergeSome(client,table,sizes,sizes.size());
+  }
+  long result=0;
+  for (  Size s : sizes) {
+    result+=s.size;
+  }
+  return result;
+}
+
+---------------
+//MNick predicted: get earlier entries
+//class: ZooQueueLock
+@Override public SortedMap<Long,byte[]> getEarlierEntries(long entry){
+  SortedMap<Long,byte[]> result=new TreeMap<>();
+  try {
+    List<String> children=Collections.emptyList();
+    try {
+      children=zoo.getChildren(path);
+    }
+ catch (    KeeperException.NoNodeException ex) {
+    }
+    for (    String name : children) {
+      try {
+        byte[] data=zoo.getData(path + "/" + name,null);
+        long order=Long.parseLong(name.substring(PREFIX.length()));
+        if (order <= entry)         result.put(order,data);
+      }
+ catch (      KeeperException.NoNodeException ex) {
+      }
+    }
+  }
+ catch (  Exception ex) {
+    throw new RuntimeException(ex);
+  }
+  return result;
+}
+
+---------------
+//MNick predicted: check sample
+//class: RFileTest
+private void checkSample(SortedKeyValueIterator<Key,Value> sample,List<Entry<Key,Value>> sampleData,Collection<ByteSequence> columnFamilies,boolean inclusive) throws IOException {
+  sample.seek(new Range(),columnFamilies,inclusive);
+  assertEquals(sampleData,toList(sample));
+  Random rand=new SecureRandom();
+  long seed=rand.nextLong();
+  rand.setSeed(seed);
+  for (int i=0; i < 33; i++) {
+    Key startKey=null;
+    boolean startInclusive=false;
+    int startIndex=0;
+    Key endKey=null;
+    boolean endInclusive=false;
+    int endIndex=sampleData.size();
+    if (rand.nextBoolean()) {
+      startIndex=rand.nextInt(sampleData.size());
+      startKey=sampleData.get(startIndex).getKey();
+      startInclusive=rand.nextBoolean();
+      if (!startInclusive) {
+        startIndex++;
+      }
+    }
+    if (startIndex < endIndex && rand.nextBoolean()) {
+      endIndex-=rand.nextInt(endIndex - startIndex);
+      endKey=sampleData.get(endIndex - 1).getKey();
+      endInclusive=rand.nextBoolean();
+      if (!endInclusive) {
+        endIndex--;
+      }
+    }
+ else     if (startIndex == endIndex) {
+      endInclusive=rand.nextBoolean();
+    }
+    sample.seek(new Range(startKey,startInclusive,endKey,endInclusive),columnFamilies,inclusive);
+    assertEquals("seed: " + seed,sampleData.subList(startIndex,endIndex),toList(sample));
+  }
+}
+
+---------------
+//MNick predicted: signal
+//class: StandaloneClusterControl
+@Override public void signal(ServerType server,String hostname,String signal) throws IOException {
+  String pid=getPid(server,accumuloHome,hostname);
+  if (pid.trim().isEmpty()) {
+    log.debug("Found no processes for {} on {}",sanitize(server.prettyPrint()),sanitize(hostname));
+    return;
+  }
+  boolean isSignalNumber=false;
+  try {
+    Integer.parseInt(signal);
+    isSignalNumber=true;
+  }
+ catch (  NumberFormatException e) {
+  }
+  String[] stopCmd;
+  if (isSignalNumber) {
+    stopCmd=new String[]{serverCmdPrefix,"kill","-" + signal,pid};
+  }
+ else {
+    stopCmd=new String[]{serverCmdPrefix,"kill","-s",signal,pid};
+  }
+  Entry<Integer,String> pair=exec(hostname,stopCmd);
+  if (pair.getKey() != 0) {
+    throw new IOException("Signal " + signal + " to "+ server+ " on "+ hostname+ " failed for execute successfully. stdout="+ pair.getValue());
+  }
+}
+
+---------------
+//MNick predicted: handle exception nnf
+//class: ProxyServer
+private void handleExceptionNNF(Exception ex) throws org.apache.accumulo.proxy.thrift.AccumuloException, org.apache.accumulo.proxy.thrift.AccumuloSecurityException, org.apache.accumulo.proxy.thrift.NamespaceNotFoundException, TException {
+  try {
+    throw ex;
+  }
+ catch (  AccumuloException e) {
+    Throwable cause=e.getCause();
+    if (cause != null && NamespaceNotFoundException.class.equals(cause.getClass())) {
+      throw new org.apache.accumulo.proxy.thrift.NamespaceNotFoundException(cause.toString());
+    }
+    handleAccumuloException(e);
+  }
+catch (  AccumuloSecurityException e) {
+    handleAccumuloSecurityException(e);
+  }
+catch (  NamespaceNotFoundException e) {
+    throw new org.apache.accumulo.proxy.thrift.NamespaceNotFoundException(ex.toString());
+  }
+catch (  Exception e) {
+    throw new org.apache.accumulo.proxy.thrift.AccumuloException(e.toString());
+  }
+}
+
+---------------
+//MNick predicted: to string
+//class: ConditionalUpdates
+@Override public java.lang.String toString(){
+  java.lang.StringBuilder sb=new java.lang.StringBuilder("ConditionalUpdates(");
+  boolean first=true;
+  sb.append("conditions:");
+  if (this.conditions == null) {
+    sb.append("null");
+  }
+ else {
+    sb.append(this.conditions);
+  }
+  first=false;
+  if (!first)   sb.append(", ");
+  sb.append("updates:");
+  if (this.updates == null) {
+    sb.append("null");
+  }
+ else {
+    sb.append(this.updates);
+  }
+  first=false;
+  sb.append(")");
+  return sb.toString();
+}
+
+---------------
+//MNick predicted: equals
+//class: KeyExtent
+public boolean equals(KeyExtent that){
+  if (that == null)   return false;
+  if (this == that)   return true;
+  boolean this_present_tableId=true && this.isSetTableId();
+  boolean that_present_tableId=true && that.isSetTableId();
+  if (this_present_tableId || that_present_tableId) {
+    if (!(this_present_tableId && that_present_tableId))     return false;
+    if (!this.tableId.equals(that.tableId))     return false;
+  }
+  boolean this_present_endRow=true && this.isSetEndRow();
+  boolean that_present_endRow=true && that.isSetEndRow();
+  if (this_present_endRow || that_present_endRow) {
+    if (!(this_present_endRow && that_present_endRow))     return false;
+    if (!this.endRow.equals(that.endRow))     return false;
+  }
+  boolean this_present_prevEndRow=true && this.isSetPrevEndRow();
+  boolean that_present_prevEndRow=true && that.isSetPrevEndRow();
+  if (this_present_prevEndRow || that_present_prevEndRow) {
+    if (!(this_present_prevEndRow && that_present_prevEndRow))     return false;
+    if (!this.prevEndRow.equals(that.prevEndRow))     return false;
+  }
+  return true;
+}
+
+---------------
+//MNick predicted: compare to
+//class: KeyValue
+@Override public int compareTo(KeyValue other){
+  if (!getClass().equals(other.getClass())) {
+    return getClass().getName().compareTo(other.getClass().getName());
+  }
+  int lastComparison=0;
+  lastComparison=java.lang.Boolean.valueOf(isSetKey()).compareTo(other.isSetKey());
+  if (lastComparison != 0) {
+    return lastComparison;
+  }
+  if (isSetKey()) {
+    lastComparison=org.apache.thrift.TBaseHelper.compareTo(this.key,other.key);
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+  }
+  lastComparison=java.lang.Boolean.valueOf(isSetValue()).compareTo(other.isSetValue());
+  if (lastComparison != 0) {
+    return lastComparison;
+  }
+  if (isSetValue()) {
+    lastComparison=org.apache.thrift.TBaseHelper.compareTo(this.value,other.value);
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+  }
+  return 0;
+}
+
+---------------
+//MNick predicted: equals
+//class: Range
+public boolean equals(Range that){
+  if (that == null)   return false;
+  if (this == that)   return true;
+  boolean this_present_start=true && this.isSetStart();
+  boolean that_present_start=true && that.isSetStart();
+  if (this_present_start || that_present_start) {
+    if (!(this_present_start && that_present_start))     return false;
+    if (!this.start.equals(that.start))     return false;
+  }
+  boolean this_present_startInclusive=true;
+  boolean that_present_startInclusive=true;
+  if (this_present_startInclusive || that_present_startInclusive) {
+    if (!(this_present_startInclusive && that_present_startInclusive))     return false;
+    if (this.startInclusive != that.startInclusive)     return false;
+  }
+  boolean this_present_stop=true && this.isSetStop();
+  boolean that_present_stop=true && that.isSetStop();
+  if (this_present_stop || that_present_stop) {
+    if (!(this_present_stop && that_present_stop))     return false;
+    if (!this.stop.equals(that.stop))     return false;
+  }
+  boolean this_present_stopInclusive=true;
+  boolean that_present_stopInclusive=true;
+  if (this_present_stopInclusive || that_present_stopInclusive) {
+    if (!(this_present_stopInclusive && that_present_stopInclusive))     return false;
+    if (this.stopInclusive != that.stopInclusive)     return false;
+  }
+  return true;
+}
+
+---------------
+//MNick predicted: compare to
+//class: ScanColumn
+@Override public int compareTo(ScanColumn other){
+  if (!getClass().equals(other.getClass())) {
+    return getClass().getName().compareTo(other.getClass().getName());
+  }
+  int lastComparison=0;
+  lastComparison=java.lang.Boolean.valueOf(isSetColFamily()).compareTo(other.isSetColFamily());
+  if (lastComparison != 0) {
+    return lastComparison;
+  }
+  if (isSetColFamily()) {
+    lastComparison=org.apache.thrift.TBaseHelper.compareTo(this.colFamily,other.colFamily);
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+  }
+  lastComparison=java.lang.Boolean.valueOf(isSetColQualifier()).compareTo(other.isSetColQualifier());
+  if (lastComparison != 0) {
+    return lastComparison;
+  }
+  if (isSetColQualifier()) {
+    lastComparison=org.apache.thrift.TBaseHelper.compareTo(this.colQualifier,other.colQualifier);
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+  }
+  return 0;
+}
+
+---------------
+//MNick predicted: to string
+//class: WriterOptions
+@Override public java.lang.String toString(){
+  java.lang.StringBuilder sb=new java.lang.StringBuilder("WriterOptions(");
+  boolean first=true;
+  sb.append("maxMemory:");
+  sb.append(this.maxMemory);
+  first=false;
+  if (!first)   sb.append(", ");
+  sb.append("latencyMs:");
+  sb.append(this.latencyMs);
+  first=false;
+  if (!first)   sb.append(", ");
+  sb.append("timeoutMs:");
+  sb.append(this.timeoutMs);
+  first=false;
+  if (!first)   sb.append(", ");
+  sb.append("threads:");
+  sb.append(this.threads);
+  first=false;
+  if (isSetDurability()) {
+    if (!first)     sb.append(", ");
+    sb.append("durability:");
+    if (this.durability == null) {
+      sb.append("null");
+    }
+ else {
+      sb.append(this.durability);
+    }
+    first=false;
+  }
+  sb.append(")");
+  return sb.toString();
+}
+
+---------------
+//MNick predicted: find overlapping tablets
+//class: BulkImporter
+public static List<TabletLocation> findOverlappingTablets(ServerContext context,VolumeManager vm,TabletLocator locator,Path file,Text startRow,Text endRow) throws Exception {
+  List<TabletLocation> result=new ArrayList<>();
+  Collection<ByteSequence> columnFamilies=Collections.emptyList();
+  String filename=file.toString();
+  FileSystem fs=vm.getVolumeByPath(file).getFileSystem();
+  try (FileSKVIterator reader=FileOperations.getInstance().newReaderBuilder().forFile(filename,fs,fs.getConf(),context.getCryptoService()).withTableConfiguration(context.getConfiguration()).seekToBeginning().build()){
+    Text row=startRow;
+    if (row == null)     row=new Text();
+    while (true) {
+      reader.seek(new Range(row,null),columnFamilies,false);
+      if (!reader.hasTop()) {
+        break;
+      }
+      row=reader.getTopKey().getRow();
+      TabletLocation tabletLocation=locator.locateTablet(context,row,false,true);
+      result.add(tabletLocation);
+      row=tabletLocation.tablet_extent.getEndRow();
+      if (row != null && (endRow == null || row.compareTo(endRow) < 0)) {
+        row=new Text(row);
+        row.append(byte0,0,byte0.length);
+      }
+ else       break;
+    }
+  }
+   return result;
+}
+
+---------------
+//MNick predicted: get namespace configuration for table
+//class: ServerConfigurationFactory
+public NamespaceConfiguration getNamespaceConfigurationForTable(Table.ID tableId){
+  NamespaceConfiguration conf;
+synchronized (tableParentConfigs) {
+    conf=tableParentConfigs.get(instanceID).get(tableId);
+  }
+  if (conf == null) {
+    Namespace.ID namespaceId;
+    try {
+      namespaceId=Tables.getNamespaceId(context,tableId);
+    }
+ catch (    TableNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+    conf=new NamespaceConfiguration(namespaceId,context,getSystemConfiguration());
+    ConfigSanityCheck.validate(conf);
+synchronized (tableParentConfigs) {
+      tableParentConfigs.get(instanceID).put(tableId,conf);
+    }
+  }
+  return conf;
+}
+
+---------------
+//MNick predicted: get volume by path
+//class: VolumeManagerImpl
+@Override public Volume getVolumeByPath(Path path){
+  if (path.toString().contains(":")) {
+    try {
+      FileSystem desiredFs=path.getFileSystem(CachedConfiguration.getInstance());
+      URI desiredFsUri=desiredFs.getUri();
+      Collection<Volume> candidateVolumes=volumesByFileSystemUri.get(desiredFsUri);
+      if (candidateVolumes != null) {
+        for (        Volume candidateVolume : candidateVolumes) {
+          if (candidateVolume.isValidPath(path)) {
+            return candidateVolume;
+          }
+        }
+      }
+ else {
+        log.debug("Could not determine volume for Path: {}",path);
+      }
+      return new NonConfiguredVolume(desiredFs);
+    }
+ catch (    IOException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+  return defaultVolume;
+}
+
+---------------
+//MNick predicted: switch volumes
+//class: VolumeUtil
+private static LogEntry switchVolumes(LogEntry le,List<Pair<Path,Path>> replacements){
+  String switchedPath=switchVolume(le.filename,FileType.WAL,replacements);
+  int numSwitched=0;
+  if (switchedPath != null)   numSwitched++;
+ else   switchedPath=le.filename;
+  ArrayList<String> switchedLogs=new ArrayList<>();
+  String switchedLog=switchVolume(le.filename,FileType.WAL,replacements);
+  if (switchedLog != null) {
+    switchedLogs.add(switchedLog);
+    numSwitched++;
+  }
+ else {
+    switchedLogs.add(le.filename);
+  }
+  if (numSwitched == 0) {
+    log.trace("Did not switch {}",le);
+    return null;
+  }
+  LogEntry newLogEntry=new LogEntry(le.extent,le.timestamp,le.server,switchedPath);
+  log.trace("Switched {} to {}",le,newLogEntry);
+  return newLogEntry;
+}
+
+---------------
+//MNick predicted: get instance name path
+//class: Initialize
+private String getInstanceNamePath(Opts opts) throws IOException, KeeperException, InterruptedException {
+  String instanceName, instanceNamePath=null;
+  boolean exists=true;
+  do {
+    if (opts.cliInstanceName == null) {
+      instanceName=getConsoleReader().readLine("Instance name : ");
+    }
+ else {
+      instanceName=opts.cliInstanceName;
+    }
+    if (instanceName == null)     System.exit(0);
+    instanceName=instanceName.trim();
+    if (instanceName.length() == 0)     continue;
+    instanceNamePath=Constants.ZROOT + Constants.ZINSTANCES + "/"+ instanceName;
+    if (opts.clearInstanceName) {
+      exists=false;
+      break;
+    }
+ else {
+      exists=zoo.exists(instanceNamePath);
+      if (exists) {
+        String decision=getConsoleReader().readLine("Instance name \"" + instanceName + "\" exists. Delete existing entry from zookeeper? [Y/N] : ");
+        if (decision == null)         System.exit(0);
+        if (decision.length() == 1 && decision.toLowerCase(Locale.ENGLISH).charAt(0) == 'y') {
+          opts.clearInstanceName=true;
+          exists=false;
+        }
+      }
+    }
+  }
+ while (exists);
+  return instanceNamePath;
+}
+
+---------------
+//MNick predicted: balance extra multiple
+//class: GroupBalancer
+private void balanceExtraMultiple(Map<TServerInstance,TserverGroupInfo> tservers,int maxExtraGroups,Moves moves,Multimap<String,TserverGroupInfo> extraMultiple,boolean alwaysAdd){
+  ArrayList<Pair<String,TserverGroupInfo>> serversToRemove=new ArrayList<>();
+  for (  TserverGroupInfo destTgi : tservers.values()) {
+    Map<String,Integer> extras=destTgi.getExtras();
+    if (alwaysAdd || extras.size() < maxExtraGroups) {
+      serversToRemove.clear();
+      for (      String group : extraMultiple.keySet()) {
+        if (!extras.containsKey(group)) {
+          Collection<TserverGroupInfo> sources=extraMultiple.get(group);
+          Iterator<TserverGroupInfo> iter=sources.iterator();
+          TserverGroupInfo srcTgi=iter.next();
+          int num=srcTgi.getExtras().get(group);
+          moves.move(group,1,srcTgi,destTgi);
+          if (num == 2) {
+            serversToRemove.add(new Pair<>(group,srcTgi));
+          }
+          if (destTgi.getExtras().size() >= maxExtraGroups || moves.size() >= getMaxMigrations()) {
+            break;
+          }
+        }
+      }
+      for (      Pair<String,TserverGroupInfo> pair : serversToRemove) {
+        extraMultiple.remove(pair.getFirst(),pair.getSecond());
+      }
+      if (extraMultiple.size() == 0 || moves.size() >= getMaxMigrations()) {
+        break;
+      }
+    }
+  }
+}
+
+---------------
+//MNick predicted: set future locations
+//class: MetaDataStateStore
+@Override public void setFutureLocations(Collection<Assignment> assignments) throws DistributedStoreException {
+  BatchWriter writer=createBatchWriter();
+  try {
+    for (    Assignment assignment : assignments) {
+      Mutation m=new Mutation(assignment.tablet.getMetadataEntry());
+      SuspendingTServer.clearSuspension(m);
+      assignment.server.putFutureLocation(m);
+      writer.addMutation(m);
+    }
+  }
+ catch (  Exception ex) {
+    throw new DistributedStoreException(ex);
+  }
+ finally {
+    try {
+      writer.close();
+    }
+ catch (    MutationsRejectedException e) {
+      throw new DistributedStoreException(e);
+    }
+  }
+}
+
+---------------
+//MNick predicted: delete problem report
+//class: ProblemReports
+public void deleteProblemReport(Table.ID table,ProblemType pType,String resource){
+  final ProblemReport pr=new ProblemReport(table,pType,resource,null);
+  Runnable r=new Runnable(){
+    @Override public void run(){
+      try {
+        if (isMeta(pr.getTableId())) {
+          pr.removeFromZooKeeper(context);
+        }
+ else {
+          pr.removeFromMetadataTable(context);
+        }
+      }
+ catch (      Exception e) {
+        log.error("Failed to delete problem report {} {} {}",pr.getTableId(),pr.getProblemType(),pr.getResource(),e);
+      }
+    }
+  }
+;
+  try {
+    reportExecutor.execute(new LoggingRunnable(log,r));
+  }
+ catch (  RejectedExecutionException ree) {
+    log.error("Failed to delete problem report {} {} {} {}",pr.getTableId(),pr.getProblemType(),pr.getResource(),ree.getMessage());
+  }
+}
+
+---------------
+//MNick predicted: get pending replications
+//class: ReplicationUtil
+public Map<ReplicationTarget,Long> getPendingReplications(){
+  final Map<ReplicationTarget,Long> counts=new HashMap<>();
+  BatchScanner bs;
+  try {
+    bs=context.createBatchScanner(ReplicationTable.NAME,Authorizations.EMPTY,4);
+  }
+ catch (  TableNotFoundException e) {
+    log.debug("No replication table exists",e);
+    return counts;
+  }
+  bs.setRanges(Collections.singleton(new Range()));
+  WorkSection.limit(bs);
+  try {
+    Text buffer=new Text();
+    for (    Entry<Key,Value> entry : bs) {
+      Key k=entry.getKey();
+      k.getColumnQualifier(buffer);
+      ReplicationTarget target=ReplicationTarget.from(buffer);
+      Long count=counts.get(target);
+      if (count == null) {
+        counts.put(target,1L);
+      }
+ else {
+        counts.put(target,count + 1);
+      }
+    }
+  }
+  finally {
+    bs.close();
+  }
+  return counts;
+}
+
+---------------
+//MNick predicted: has namespace permission
+//class: ZKPermHandler
+@Override public boolean hasNamespacePermission(String user,Namespace.ID namespace,NamespacePermission permission) throws NamespaceNotFoundException {
+  byte[] serializedPerms;
+  try {
+    String path=ZKUserPath + "/" + user+ ZKUserNamespacePerms+ "/"+ namespace;
+    zoo.sync(path);
+    serializedPerms=zoo.getData(path,null);
+  }
+ catch (  KeeperException e) {
+    if (e.code() == Code.NONODE) {
+      try {
+        zoo.getData(ZKNamespacePath + "/" + namespace,null);
+        return false;
+      }
+ catch (      InterruptedException ex) {
+        log.warn("Unhandled InterruptedException, failing closed for namespace permission check",e);
+        return false;
+      }
+catch (      KeeperException ex) {
+        if (e.code() == Code.NONODE) {
+          throw new NamespaceNotFoundException(namespace.canonicalID(),null,"while checking permissions");
+        }
+        log.warn("Unhandled InterruptedException, failing closed for table permission check",e);
+      }
+      return false;
+    }
+    log.warn("Unhandled KeeperException, failing closed for table permission check",e);
+    return false;
+  }
+catch (  InterruptedException e) {
+    log.warn("Unhandled InterruptedException, failing closed for table permission check",e);
+    return false;
+  }
+  if (serializedPerms != null) {
+    return ZKSecurityTool.convertNamespacePermissions(serializedPerms).contains(permission);
+  }
+  return false;
+}
+
+---------------
+//MNick predicted: has system permission
+//class: ZKPermHandler
+@Override public boolean hasSystemPermission(String user,SystemPermission permission){
+  byte[] perms;
+  try {
+    String path=ZKUserPath + "/" + user+ ZKUserSysPerms;
+    zoo.sync(path);
+    perms=zoo.getData(path,null);
+  }
+ catch (  KeeperException e) {
+    if (e.code() == Code.NONODE) {
+      return false;
+    }
+    log.warn("Unhandled KeeperException, failing closed for table permission check",e);
+    return false;
+  }
+catch (  InterruptedException e) {
+    log.warn("Unhandled InterruptedException, failing closed for table permission check",e);
+    return false;
+  }
+  if (perms == null)   return false;
+  return ZKSecurityTool.convertSystemPermissions(perms).contains(permission);
+}
+
+---------------
+//MNick predicted: print system configuration
+//class: Admin
+private void printSystemConfiguration(File outputDirectory) throws IOException {
+  TreeMap<String,String> conf=new TreeMap<>();
+  TreeMap<String,String> site=new TreeMap<>(siteConfig);
+  for (  Entry<String,String> prop : site.entrySet()) {
+    String defaultValue=getDefaultConfigValue(prop.getKey());
+    if (!prop.getValue().equals(defaultValue) && !systemConfig.containsKey(prop.getKey())) {
+      conf.put(prop.getKey(),prop.getValue());
+    }
+  }
+  TreeMap<String,String> system=new TreeMap<>(systemConfig);
+  for (  Entry<String,String> prop : system.entrySet()) {
+    String defaultValue=getDefaultConfigValue(prop.getKey());
+    if (!prop.getValue().equals(defaultValue)) {
+      conf.put(prop.getKey(),prop.getValue());
+    }
+  }
+  File siteBackup=new File(outputDirectory,ACCUMULO_SITE_BACKUP_FILE);
+  try (FileWriter fw=new FileWriter(siteBackup)){
+    for (    Entry<String,String> prop : conf.entrySet()) {
+      fw.write(prop.getKey() + "=" + prop.getValue()+ "\n");
+    }
+  }
+ }
+
+---------------
+//MNick predicted: get instance names
+//class: ListInstances
+private static TreeMap<String,UUID> getInstanceNames(ZooReader zk,boolean printErrors){
+  String instancesPath=Constants.ZROOT + Constants.ZINSTANCES;
+  TreeMap<String,UUID> tm=new TreeMap<>();
+  List<String> names;
+  try {
+    names=zk.getChildren(instancesPath);
+  }
+ catch (  Exception e) {
+    handleException(e,printErrors);
+    return tm;
+  }
+  for (  String name : names) {
+    String instanceNamePath=Constants.ZROOT + Constants.ZINSTANCES + "/"+ name;
+    try {
+      UUID iid=UUID.fromString(new String(zk.getData(instanceNamePath,null),UTF_8));
+      tm.put(name,iid);
+    }
+ catch (    Exception e) {
+      handleException(e,printErrors);
+      tm.put(name,null);
+    }
+  }
+  return tm;
+}
+
+---------------
+//MNick predicted: move root tablet to root table
+//class: Master
+private void moveRootTabletToRootTable(IZooReaderWriter zoo) throws Exception {
+  String dirZPath=getZooKeeperRoot() + RootTable.ZROOT_TABLET_PATH;
+  if (!zoo.exists(dirZPath)) {
+    Path oldPath=fs.getFullPath(FileType.TABLE,"/" + MetadataTable.ID + "/root_tablet");
+    if (fs.exists(oldPath)) {
+      VolumeChooserEnvironment chooserEnv=new VolumeChooserEnvironment(RootTable.ID,context);
+      String newPath=fs.choose(chooserEnv,ServerConstants.getBaseUris(getConfiguration())) + Constants.HDFS_TABLES_DIR + Path.SEPARATOR+ RootTable.ID;
+      fs.mkdirs(new Path(newPath));
+      if (!fs.rename(oldPath,new Path(newPath))) {
+        throw new IOException("Failed to move root tablet from " + oldPath + " to "+ newPath);
+      }
+      log.info("Upgrade renamed {} to {}",oldPath,newPath);
+    }
+    Path location=null;
+    for (    String basePath : ServerConstants.getTablesDirs(getConfiguration())) {
+      Path path=new Path(basePath + "/" + RootTable.ID+ RootTable.ROOT_TABLET_LOCATION);
+      if (fs.exists(path)) {
+        if (location != null) {
+          throw new IllegalStateException("Root table at multiple locations " + location + " "+ path);
+        }
+        location=path;
+      }
+    }
+    if (location == null)     throw new IllegalStateException("Failed to find root tablet");
+    log.info("Upgrade setting root table location in zookeeper {}",location);
+    zoo.putPersistentData(dirZPath,location.toString().getBytes(),NodeExistsPolicy.FAIL);
+  }
+}
+
+
+---------------
+//MNick predicted: send chop request
+//class: TabletGroupWatcher
+private void sendChopRequest(MergeInfo info,TabletState state,TabletLocationState tls){
+  if (!info.getState().equals(MergeState.WAITING_FOR_CHOPPED))   return;
+  if (!state.equals(TabletState.HOSTED))   return;
+  if (tls.chopped)   return;
+  if (info.needsToBeChopped(tls.extent)) {
+    TServerConnection conn;
+    try {
+      conn=this.master.tserverSet.getConnection(tls.current);
+      if (conn != null) {
+        Master.log.info("Asking {} to chop {}",tls.current,tls.extent);
+        conn.chop(this.master.masterLock,tls.extent);
+      }
+ else {
+        Master.log.warn("Could not connect to server {}",tls.current);
+      }
+    }
+ catch (    TException e) {
+      Master.log.warn("Communications error asking tablet server to chop a tablet");
+    }
+  }
+}
+
+---------------
+//MNick predicted: get high tablet
+//class: TabletGroupWatcher
+private KeyExtent getHighTablet(KeyExtent range) throws AccumuloException {
+  try {
+    AccumuloClient client=this.master.getContext();
+    Scanner scanner=client.createScanner(range.isMeta() ? RootTable.NAME : MetadataTable.NAME,Authorizations.EMPTY);
+    TabletsSection.TabletColumnFamily.PREV_ROW_COLUMN.fetch(scanner);
+    KeyExtent start=new KeyExtent(range.getTableId(),range.getEndRow(),null);
+    scanner.setRange(new Range(start.getMetadataEntry(),null));
+    Iterator<Entry<Key,Value>> iterator=scanner.iterator();
+    if (!iterator.hasNext()) {
+      throw new AccumuloException("No last tablet for a merge " + range);
+    }
+    Entry<Key,Value> entry=iterator.next();
+    KeyExtent highTablet=new KeyExtent(entry.getKey().getRow(),KeyExtent.decodePrevEndRow(entry.getValue()));
+    if (!highTablet.getTableId().equals(range.getTableId())) {
+      throw new AccumuloException("No last tablet for merge " + range + " "+ highTablet);
+    }
+    return highTablet;
+  }
+ catch (  Exception ex) {
+    throw new AccumuloException("Unexpected failure finding the last tablet for a merge " + range,ex);
+  }
+}
+
+---------------
+//MNick predicted: close
+//class: DfsLogger
+public void close() throws IOException {
+synchronized (closeLock) {
+    if (closed)     return;
+    closed=true;
+    workQueue.add(CLOSED_MARKER);
+  }
+  if (syncThread != null) {
+    try {
+      syncThread.join();
+    }
+ catch (    InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  if (workQueue.size() != 0) {
+    log.error("WAL work queue not empty after sync thread exited");
+    throw new IllegalStateException("WAL work queue not empty after sync thread exited");
+  }
+  if (encryptingLogFile != null)   try {
+    logFile.close();
+  }
+ catch (  IOException ex) {
+    log.error("Failed to close log file",ex);
+    throw new LogClosedException();
+  }
+}
+
+---------------
+//MNick predicted: return files for scan
+//class: DatafileManager
+void returnFilesForScan(Long reservationId){
+  final Set<FileRef> filesToDelete=new HashSet<>();
+synchronized (tablet) {
+    Set<FileRef> absFilePaths=scanFileReservations.remove(reservationId);
+    if (absFilePaths == null)     throw new IllegalArgumentException("Unknown scan reservation id " + reservationId);
+    boolean notify=false;
+    for (    FileRef path : absFilePaths) {
+      long refCount=fileScanReferenceCounts.decrement(path,1);
+      if (refCount == 0) {
+        if (filesToDeleteAfterScan.remove(path))         filesToDelete.add(path);
+        notify=true;
+      }
+ else       if (refCount < 0)       throw new IllegalStateException("Scan ref count for " + path + " is "+ refCount);
+    }
+    if (notify)     tablet.notifyAll();
+  }
+  if (filesToDelete.size() > 0) {
+    log.debug("Removing scan refs from metadata {} {}",tablet.getExtent(),filesToDelete);
+    MetadataTableUtil.removeScanFiles(tablet.getExtent(),filesToDelete,tablet.getContext(),tablet.getTabletServer().getLock());
+  }
+}
+
+
+---------------
+//MNick predicted: remove smallest
+//class: Tablet
+private Set<FileRef> removeSmallest(Map<FileRef,DataFileValue> filesToCompact,int maxFilesToCompact){
+  if (filesToCompact.size() <= maxFilesToCompact) {
+    Set<FileRef> smallestFiles=new HashSet<>(filesToCompact.keySet());
+    filesToCompact.clear();
+    return smallestFiles;
+  }
+  PriorityQueue<Pair<FileRef,Long>> fileHeap=new PriorityQueue<>(filesToCompact.size(),(o1,o2) -> {
+    if (o1.getSecond() == o2.getSecond())     return o1.getFirst().compareTo(o2.getFirst());
+    if (o1.getSecond() < o2.getSecond())     return -1;
+    return 1;
+  }
+);
+  for (Iterator<Entry<FileRef,DataFileValue>> iterator=filesToCompact.entrySet().iterator(); iterator.hasNext(); ) {
+    Entry<FileRef,DataFileValue> entry=iterator.next();
+    fileHeap.add(new Pair<>(entry.getKey(),entry.getValue().getSize()));
+  }
+  Set<FileRef> smallestFiles=new HashSet<>();
+  while (smallestFiles.size() < maxFilesToCompact && fileHeap.size() > 0) {
+    Pair<FileRef,Long> pair=fileHeap.remove();
+    filesToCompact.remove(pair.getFirst());
+    smallestFiles.add(pair.getFirst());
+  }
+  return smallestFiles;
+}
+
+---------------
+//MNick predicted: verify tablet information
+//class: TabletServer
+public static Pair<Text,KeyExtent> verifyTabletInformation(ServerContext context,KeyExtent extent,TServerInstance instance,final SortedMap<Key,Value> tabletsKeyValues,String clientAddress,ZooLock lock) throws DistributedStoreException, AccumuloException {
+  Objects.requireNonNull(tabletsKeyValues);
+  log.debug("verifying extent {}",extent);
+  if (extent.isRootTablet()) {
+    return verifyRootTablet(context,instance);
+  }
+  Table.ID tableToVerify=MetadataTable.ID;
+  if (extent.isMeta())   tableToVerify=RootTable.ID;
+  List<ColumnFQ> columnsToFetch=Arrays.asList(TabletsSection.ServerColumnFamily.DIRECTORY_COLUMN,TabletsSection.TabletColumnFamily.PREV_ROW_COLUMN,TabletsSection.TabletColumnFamily.SPLIT_RATIO_COLUMN,TabletsSection.TabletColumnFamily.OLD_PREV_ROW_COLUMN,TabletsSection.ServerColumnFamily.TIME_COLUMN);
+  TreeMap<Key,Value> tkv=new TreeMap<>();
+  try (ScannerImpl scanner=new ScannerImpl(context,tableToVerify,Authorizations.EMPTY)){
+    scanner.setRange(extent.toMetadataRange());
+    for (    Entry<Key,Value> entry : scanner)     tkv.put(entry.getKey(),entry.getValue());
+  }
+   tabletsKeyValues.clear();
+  tabletsKeyValues.putAll(tkv);
+  Text metadataEntry=extent.getMetadataEntry();
+  Value dir=checkTabletMetadata(extent,instance,tabletsKeyValues,metadataEntry);
+  if (dir == null)   return null;
+  Value oldPrevEndRow=null;
+  for (  Entry<Key,Value> entry : tabletsKeyValues.entrySet()) {
+    if (TabletsSection.TabletColumnFamily.OLD_PREV_ROW_COLUMN.hasColumns(entry.getKey())) {
+      oldPrevEndRow=entry.getValue();
+    }
+  }
+  if (oldPrevEndRow != null) {
+    SortedMap<Text,SortedMap<ColumnFQ,Value>> tabletEntries;
+    tabletEntries=MetadataTableUtil.getTabletEntries(tabletsKeyValues,columnsToFetch);
+    KeyExtent fke=MasterMetadataUtil.fixSplit(context,metadataEntry,tabletEntries.get(metadataEntry),lock);
+    if (!fke.equals(extent)) {
+      return new Pair<>(null,fke);
+    }
+    tabletsKeyValues.clear();
+    return verifyTabletInformation(context,fke,instance,tabletsKeyValues,clientAddress,lock);
+  }
+  return new Pair<>(new Text(dir.get()),null);
+}
+
+---------------
+//MNick predicted: recover
+//class: SortedLogRecoveryTest
+private static List<Mutation> recover(Map<String,KeyValue[]> logs,Set<String> files,KeyExtent extent) throws IOException {
+  TemporaryFolder root=new TemporaryFolder(new File(System.getProperty("user.dir") + "/target"));
+  root.create();
+  final String workdir=root.getRoot().getAbsolutePath() + "/workdir";
+  VolumeManager fs=VolumeManagerImpl.getLocal(workdir);
+  final Path workdirPath=new Path("file://" + workdir);
+  fs.deleteRecursively(workdirPath);
+  ArrayList<Path> dirs=new ArrayList<>();
+  try {
+    for (    Entry<String,KeyValue[]> entry : logs.entrySet()) {
+      String path=workdir + "/" + entry.getKey();
+      FileSystem ns=fs.getVolumeByPath(new Path(path)).getFileSystem();
+      @SuppressWarnings("deprecation") Writer map=new MapFile.Writer(ns.getConf(),ns,path + "/log1",LogFileKey.class,LogFileValue.class);
+      for (      KeyValue lfe : entry.getValue()) {
+        map.append(lfe.key,lfe.value);
+      }
+      map.close();
+      ns.create(SortedLogState.getFinishedMarkerPath(path)).close();
+      dirs.add(new Path(path));
+    }
+    SortedLogRecovery recovery=new SortedLogRecovery(fs);
+    CaptureMutations capture=new CaptureMutations();
+    recovery.recover(extent,dirs,files,capture);
+    return capture.result;
+  }
+  finally {
+    root.delete();
+  }
+}
+
+---------------
+//MNick predicted: execute
+//class: CompactCommand
+@Override public int execute(final String fullCommand,final CommandLine cl,final Shell shellState) throws Exception {
+  if (cl.hasOption(cancelOpt.getLongOpt())) {
+    cancel=true;
+    if (cl.getOptions().length > 2) {
+      throw new IllegalArgumentException("Can not specify other options with cancel");
+    }
+  }
+ else {
+    cancel=false;
+  }
+  compactionConfig=new CompactionConfig();
+  compactionConfig.setFlush(!cl.hasOption(noFlushOption.getOpt()));
+  compactionConfig.setWait(cl.hasOption(waitOpt.getOpt()));
+  compactionConfig.setStartRow(OptUtil.getStartRow(cl));
+  compactionConfig.setEndRow(OptUtil.getEndRow(cl));
+  if (cl.hasOption(profileOpt.getOpt())) {
+    List<IteratorSetting> iterators=shellState.iteratorProfiles.get(cl.getOptionValue(profileOpt.getOpt()));
+    if (iterators == null) {
+      Shell.log.error("Profile " + cl.getOptionValue(profileOpt.getOpt()) + " does not exist");
+      return -1;
+    }
+    compactionConfig.setIterators(new ArrayList<>(iterators));
+  }
+  Map<String,String> configurableCompactOpt=getConfigurableCompactionStrategyOpts(cl);
+  if (cl.hasOption(strategyOpt.getOpt())) {
+    if (configurableCompactOpt.size() > 0)     throw new IllegalArgumentException("Can not specify compaction strategy with file selection and file output options.");
+    CompactionStrategyConfig csc=new CompactionStrategyConfig(cl.getOptionValue(strategyOpt.getOpt()));
+    csc.setOptions(ShellUtil.parseMapOpt(cl,strategyConfigOpt));
+    compactionConfig.setCompactionStrategy(csc);
+  }
+  if (configurableCompactOpt.size() > 0) {
+    CompactionStrategyConfig csc=new CompactionStrategyConfig("org.apache.accumulo.tserver.compaction.strategies.ConfigurableCompactionStrategy");
+    csc.setOptions(configurableCompactOpt);
+    compactionConfig.setCompactionStrategy(csc);
+  }
+  return super.execute(fullCommand,cl,shellState);
+}
+
+---------------
+//MNick predicted: add scan iterators
+//class: ScanCommand
+protected void addScanIterators(final Shell shellState,CommandLine cl,final Scanner scanner,final String tableName) throws Exception {
+  List<IteratorSetting> tableScanIterators;
+  if (cl.hasOption(profileOpt.getOpt())) {
+    String profile=cl.getOptionValue(profileOpt.getOpt());
+    tableScanIterators=shellState.iteratorProfiles.get(profile);
+    if (tableScanIterators == null) {
+      throw new IllegalArgumentException("Profile " + profile + " does not exist");
+    }
+    for (    IteratorSetting iteratorSetting : tableScanIterators) {
+      ensureTserversCanLoadIterator(shellState,tableName,iteratorSetting.getIteratorClass());
+    }
+  }
+ else {
+    tableScanIterators=shellState.scanIteratorOptions.get(tableName);
+    if (tableScanIterators == null) {
+      Shell.log.debug("Found no scan iterators to set");
+      return;
+    }
+  }
+  Shell.log.debug("Found " + tableScanIterators.size() + " scan iterators to set");
+  for (  IteratorSetting setting : tableScanIterators) {
+    Shell.log.debug("Setting scan iterator " + setting.getName() + " at priority "+ setting.getPriority()+ " using class name "+ setting.getIteratorClass());
+    for (    Entry<String,String> option : setting.getOptions().entrySet()) {
+      Shell.log.debug("Setting option for " + setting.getName() + ": "+ option.getKey()+ "="+ option.getValue());
+    }
+    scanner.addScanIterator(setting);
+  }
+}
+
+---------------
+//MNick predicted: close
+//class: AccumuloVFSClassLoader
+public static void close(){
+  for (  WeakReference<DefaultFileSystemManager> vfsInstance : vfsInstances) {
+    DefaultFileSystemManager ref=vfsInstance.get();
+    if (ref != null) {
+      FileReplicator replicator;
+      try {
+        replicator=ref.getReplicator();
+        if (replicator instanceof UniqueFileReplicator) {
+          ((UniqueFileReplicator)replicator).close();
+        }
+      }
+ catch (      FileSystemException e) {
+        log.error("FileSystemException",e);
+      }
+      ref.close();
+    }
+  }
+  try {
+    FileUtils.deleteDirectory(computeTopCacheDir());
+  }
+ catch (  IOException e) {
+    log.error("IOException",e);
+  }
+}
+
+---------------
+//MNick predicted: get logs
+//class: ReplicationIT
+private Multimap<String,Table.ID> getLogs(AccumuloClient client,ServerContext context) throws Exception {
+  Multimap<String,Table.ID> logs=getLogs(client,context);
+  try (Scanner scanner=context.createScanner(ReplicationTable.NAME,Authorizations.EMPTY)){
+    StatusSection.limit(scanner);
+    Text buff=new Text();
+    for (    Entry<Key,Value> entry : scanner) {
+      if (Thread.interrupted()) {
+        Thread.currentThread().interrupt();
+        return logs;
+      }
+      StatusSection.getFile(entry.getKey(),buff);
+      String file=buff.toString();
+      Table.ID tableId=StatusSection.getTableId(entry.getKey());
+      logs.put(file,tableId);
+    }
+  }
+ catch (  TableOfflineException e) {
+    log.debug("Replication table isn't online yet");
+  }
+  return logs;
+}
+
+
+---------------
+//MNick predicted: get url
+//class: DiscoveryHandlerImpl
+private URL getURL(String serverURL,boolean checkURL){
+  try {
+    if (!checkURL) {
+      return new URL(serverURL);
+    }
+    CheckedURL checkedURL=m_checkedURLs.get(serverURL);
+    if (checkedURL == null) {
+      checkedURL=new CheckedURL(new URL(serverURL),DEFAULT_CACHE_MILLISECONDS);
+      m_checkedURLs.put(serverURL,checkedURL);
+    }
+ else {
+      if (checkedURL.isRecentlyChecked()) {
+        if (checkedURL.isAvailable()) {
+          logDebug("Returning cached serverURL: %s",serverURL);
+          return checkedURL.getURL();
+        }
+ else {
+          logDebug("Ignoring blacklisted serverURL: %s",serverURL);
+          return null;
+        }
+      }
+    }
+    try {
+      tryConnect(checkedURL.m_url);
+      logDebug("Succesfully connected to serverURL: %s",serverURL);
+      checkedURL.setAvailable(true);
+      return checkedURL.getURL();
+    }
+ catch (    IOException e) {
+      logWarning("Blacklisting unavailable serverURL: %s",serverURL);
+      checkedURL.setAvailable(false);
+      return null;
+    }
+  }
+ catch (  MalformedURLException e) {
+    logWarning("Ignoring invalid/malformed serverURL: %s",serverURL);
+    return null;
+  }
+}
+
+---------------
+//MNick predicted: run
+//class: Activator
+@Override public void run(){
+  try {
+    m_agent.update(m_newStream);
+  }
+ catch (  BundleException e) {
+    try {
+      m_agent.update(m_oldStream);
+      m_agent.start();
+    }
+ catch (    BundleException e1) {
+      System.err.println("Error updating agent:");
+      e.printStackTrace(System.err);
+      e1.printStackTrace(System.err);
+      try {
+        m_agent.start();
+        System.err.println("We did manage to start the agent again.");
+      }
+ catch (      BundleException e2) {
+        e2.printStackTrace(System.err);
+      }
+    }
+  }
+}
+
+---------------
+//MNick predicted: set properties
+//class: AceUrlConnector
+@Override public void setProperties(Map<String,String> map){
+  String configFileList=map.get("configs");
+  if (configFileList == null) {
+    throw new IllegalArgumentException("'configs' must be specified on HttpBasicAuthURLConnector");
+  }
+  ConnectionFactory connectionFactory=getConnectionFactory();
+  ManagedServiceFactory managedServiceFactory=(ManagedServiceFactory)connectionFactory;
+  StringTokenizer tokenizer=new StringTokenizer(configFileList,",");
+  while (tokenizer.hasMoreTokens()) {
+    String configFileName=tokenizer.nextToken().trim();
+    File file=new File(configFileName);
+    if (file.exists()) {
+      try {
+        Properties properties=new Properties();
+        properties.load(new FileInputStream(file));
+        Dictionary<String,String> dict=new Hashtable<>();
+        for (        Object key : properties.keySet()) {
+          String value=(String)properties.get(key);
+          dict.put((String)key,value);
+        }
+        managedServiceFactory.updated(file.getAbsolutePath(),dict);
+      }
+ catch (      IOException|ConfigurationException e) {
+      }
+    }
+    m_connectionFactory=connectionFactory;
+  }
+}
+
+---------------
+//MNick predicted: create manifest
+//class: DeploymentPackageBuilder
+private Manifest createManifest(List<ArtifactData> files) throws Exception {
+  Manifest manifest=new Manifest();
+  Attributes main=manifest.getMainAttributes();
+  main.putValue("Manifest-Version","1.0");
+  main.putValue("DeploymentPackage-SymbolicName",m_symbolicName);
+  main.putValue("DeploymentPackage-Version",m_version);
+  for (  ArtifactData file : files) {
+    if (file.isBundle()) {
+      Attributes a=new Attributes();
+      a.putValue("Bundle-SymbolicName",file.getSymbolicName());
+      a.putValue("Bundle-Version",file.getVersion());
+      if (file.isCustomizer()) {
+        a.putValue("DeploymentPackage-Customizer","true");
+        a.putValue("Deployment-ProvidesResourceProcessor",file.getProcessorPid());
+      }
+      manifest.getEntries().put(file.getFilename(),a);
+    }
+ else {
+      Attributes a=new Attributes();
+      a.putValue("Resource-Processor",file.getProcessorPid());
+      manifest.getEntries().put(file.getFilename(),a);
+    }
+  }
+  return manifest;
+}
+
+---------------
+//MNick predicted: create resource processor
+//class: DeploymentPackageBuilderTest
+private URL createResourceProcessor(String symbolicName,String version,String processorPID,File file) throws Exception {
+  Manifest manifest=new Manifest();
+  Attributes main=manifest.getMainAttributes();
+  main.putValue("Manifest-Version","1.0");
+  main.putValue("Bundle-SymbolicName",symbolicName);
+  main.putValue("Bundle-Version",version);
+  main.putValue("DeploymentPackage-Customizer","true");
+  main.putValue("Deployment-ProvidesResourceProcessor",processorPID);
+  JarOutputStream output=null;
+  InputStream fis=null;
+  try {
+    output=new JarOutputStream(new FileOutputStream(file),manifest);
+    return file.toURI().toURL();
+  }
+  finally {
+    if (output != null) {
+      output.close();
+    }
+    if (fis != null) {
+      fis.close();
+    }
+  }
+}
+
+---------------
+//MNick predicted: configure
+//class: Configurator
+private void configure(String pid,String factoryPid,Properties properties){
+  try {
+    Configuration config=getConfiguration(pid,factoryPid);
+    Dictionary<String,Object> props=config.getProperties();
+    if (props == null) {
+      props=new Hashtable<>();
+    }
+    List<String> curKeys=Collections.list(props.keys());
+    for (    Object key : properties.keySet()) {
+      if (curKeys.contains(key) && !m_reconfig) {
+        m_log.log(LogService.LOG_DEBUG,"Using previously configured value for bundle=" + pid + " key="+ key);
+      }
+ else {
+        props.put((String)key,properties.get(key));
+      }
+    }
+    if (factoryPid != null) {
+      props.put(FACTORY_INSTANCE_KEY,factoryPid + "_" + pid);
+    }
+    config.update(props);
+    m_log.log(LogService.LOG_DEBUG,"Updated configuration for pid '" + pid + "' ("+ props+ ")");
+  }
+ catch (  IOException ex) {
+    m_log.log(LogService.LOG_ERROR,"Unable to update configuration for pid '" + pid + "'",ex);
+  }
+}
+
+---------------
+//MNick predicted: copy resource
+//class: RepositoryUtil
+public static Resource copyResource(AbstractIndexedRepo sourceRepo,AbstractIndexedRepo targetRepo,Resource resource) throws Exception {
+  File file=sourceRepo.get(getIdentity(resource),getVersion(resource).toString(),Strategy.EXACT,null);
+  InputStream input=null;
+  try {
+    input=new FileInputStream(file);
+    if (targetRepo instanceof AceObrRepository) {
+      AceObrRepository aceToRepo=(AceObrRepository)targetRepo;
+      aceToRepo.upload(input,getFileName(resource),getMimetype(resource));
+    }
+ else {
+      targetRepo.put(input,null);
+    }
+    targetRepo.reset();
+    List<Resource> resultResources=findResources(targetRepo,getIdentity(resource),getVersion(resource).toString());
+    if (resultResources == null || resultResources.size() == 0) {
+      throw new IllegalStateException("Unable to locate target resource after copy: " + resource);
+    }
+    return resultResources.get(0);
+  }
+  finally {
+    if (input != null)     input.close();
+  }
+}
+
+---------------
+//MNick predicted: handle query
+//class: LogServlet
+protected boolean handleQuery(String targetID,String logID,String filter,ServletOutputStream output) throws IOException {
+  if ((targetID != null) && (logID != null)) {
+    Descriptor range=m_store.getDescriptor(targetID,Long.parseLong(logID));
+    output.print(range.toRepresentation());
+    return true;
+  }
+ else   if (targetID != null) {
+    List<Descriptor> ranges=m_store.getDescriptors(targetID);
+    for (    Descriptor range : ranges) {
+      output.print(range.toRepresentation() + "\n");
+    }
+    return true;
+  }
+ else   if ((targetID == null) && (logID == null)) {
+    List<Descriptor> ranges=m_store.getDescriptors();
+    for (    Descriptor range : ranges) {
+      output.print(range.toRepresentation() + "\n");
+    }
+    return true;
+  }
+  return false;
+}
+
+---------------
+//MNick predicted: get lowest id internal
+//class: LogStoreImpl
+private long getLowestIDInternal(String targetID,long logID){
+  File index=getLogFileIndex(targetID,logID);
+  Long result=m_fileToLowestID.get(index.getAbsolutePath());
+  if (result == null) {
+    BufferedReader br=null;
+    try {
+      br=new BufferedReader(new FileReader(index));
+      String line=br.readLine();
+      br.close();
+      result=Long.parseLong(line);
+      m_fileToLowestID.put(index.getAbsolutePath(),result);
+    }
+ catch (    Exception nfe) {
+      m_fileToLowestID.put(index.getAbsolutePath(),0L);
+      return 0L;
+    }
+ finally {
+      if (br != null) {
+        try {
+          br.close();
+        }
+ catch (        IOException e) {
+        }
+      }
+    }
+  }
+  return result;
+}
+
+---------------
+//MNick predicted: previous element
+//class: RangeIterator
+private long previousElement(){
+  if (m_current == null) {
+    if (m_iterator.hasPrevious()) {
+      m_current=(Range)m_iterator.previous();
+      m_number=m_current.getHigh();
+      return m_number;
+    }
+  }
+ else {
+    if (m_number == m_current.getLow()) {
+      if (m_iterator.hasPrevious()) {
+        m_current=(Range)m_iterator.previous();
+        m_number=m_current.getHigh();
+        return m_number;
+      }
+    }
+ else {
+      m_number--;
+      return m_number;
+    }
+  }
+  throw new NoSuchElementException();
+}
+
+---------------
+//MNick predicted: get range
+//class: RemoteRepository
+public SortedRangeSet getRange() throws IOException {
+  URL url=buildCommand(m_url,COMMAND_QUERY,0);
+  HttpURLConnection connection=(HttpURLConnection)m_connectionFactory.createConnection(url);
+  try {
+    if (connection.getResponseCode() == HttpServletResponse.SC_OK) {
+      BufferedReader reader=new BufferedReader(new InputStreamReader(connection.getInputStream()));
+      try {
+        String line=reader.readLine();
+        if (line == null) {
+          throw new IOException("Repository not found: customer=" + m_customer + ", name="+ m_name+ " for "+ url.toExternalForm());
+        }
+        String representation=line.substring(line.lastIndexOf(','));
+        return new SortedRangeSet(representation);
+      }
+  finally {
+        reader.close();
+      }
+    }
+    throw new IOException("Connection error: " + connection.getResponseMessage() + " for "+ url.toExternalForm());
+  }
+  finally {
+    closeQuietly(connection);
+  }
+}
+
+---------------
+//MNick predicted: updated
+//class: RepositoryReplicationTask
+@Override public void updated(Dictionary<String,?> properties) throws ConfigurationException {
+  Long interval=null;
+  if (properties != null) {
+    Object value=properties.get(KEY_SYNC_INTERVAL);
+    if (value != null) {
+      try {
+        interval=Long.valueOf(value.toString());
+      }
+ catch (      NumberFormatException e) {
+        throw new ConfigurationException("interval","Interval must be a valid Long value",e);
+      }
+    }
+ else {
+      throw new ConfigurationException("interval","Interval is required");
+    }
+    Dictionary<Object,Object> serviceProps=m_component.getServiceProperties();
+    serviceProps.put(Constants.REPEAT_FOREVER,true);
+    serviceProps.put(Constants.REPEAT_INTERVAL_PERIOD,"millisecond");
+    serviceProps.put(Constants.REPEAT_INTERVAL_VALUE,interval);
+    m_component.setServiceProperties(serviceProps);
+  }
+}
+
+
+---------------
+//MNick predicted: get roles
+//class: UserAdminRepository
+@Override public Role[] getRoles(String filterString) throws Exception {
+  Filter filter=null;
+  if (filterString != null) {
+    filter=FrameworkUtil.createFilter(filterString);
+  }
+  ensureRoleMapIsCurrent();
+  List<Role> allRoles;
+  m_rw.readLock().lock();
+  try {
+    allRoles=new ArrayList<>(m_roleMap.values());
+  }
+  finally {
+    m_rw.readLock().unlock();
+  }
+  List<Role> matchingRoles=new ArrayList<>();
+  for (  Role role : allRoles) {
+    if (filter == null || filter.match(role.getProperties())) {
+      matchingRoles.add(role);
+    }
+  }
+  return matchingRoles.toArray(new Role[matchingRoles.size()]);
+}
+
+---------------
+//MNick predicted: edit username
+//class: UserEditorImpl
+@Override public void editUsername(UserDTO userDTO) throws UserNotFoundException, GroupNotFoundException, UserAlreadyExistsException {
+  String oldUsername=userDTO.getPreviousUsername();
+  String newUsername=userDTO.getUsername();
+  if (oldUsername == null || newUsername == null || "".equals(newUsername)) {
+    throw new IllegalArgumentException("oldUsername and newUsername cannot be null or \"\" ");
+  }
+  if (newUsername.equals(oldUsername)) {
+    return;
+  }
+  if (getUser(newUsername) != null) {
+    throw new UserAlreadyExistsException(newUsername);
+  }
+  User user=getUser(oldUsername);
+  if (user == null) {
+    throw new UserNotFoundException(oldUsername);
+  }
+  Group group=getGroup(user);
+  if (group == null) {
+    throw new GroupNotFoundException(null);
+  }
+  group.removeMember(user);
+  m_useradmin.removeRole(user.getName());
+  User newUser=(User)m_useradmin.createRole(newUsername,Role.USER);
+  newUser.getProperties().put("username",newUsername);
+  newUser.getCredentials().put("password",userDTO.getPassword());
+  group.addMember(newUser);
+}
+
+---------------
+//MNick predicted: add capability
+//class: CapabilitySet
+public void addCapability(BundleCapability cap){
+  m_capSet.add(cap);
+  for (  Entry<String,Map<Object,Set<BundleCapability>>> entry : m_indices.entrySet()) {
+    Object value=cap.getAttributes().get(entry.getKey());
+    if (value != null) {
+      if (value.getClass().isArray()) {
+        value=convertArrayToList(value);
+      }
+      Map<Object,Set<BundleCapability>> index=entry.getValue();
+      if (value instanceof Collection) {
+        Collection c=(Collection)value;
+        for (        Object o : c) {
+          indexCapability(index,cap,o);
+        }
+      }
+ else {
+        indexCapability(index,cap,value);
+      }
+    }
+  }
+}
+
+---------------
+//MNick predicted: populate dynamic
+//class: Candidates
+public void populateDynamic(ResolverState state,BundleRevision revision,BundleRequirement req,SortedSet<BundleCapability> candidates){
+  m_mandatoryRevisions.add(revision);
+  add(req,candidates);
+  ResolveException rethrow=null;
+  for (Iterator<BundleCapability> itCandCap=candidates.iterator(); itCandCap.hasNext(); ) {
+    BundleCapability candCap=itCandCap.next();
+    if (candCap.getRevision().getWiring() == null) {
+      try {
+        populateRevision(state,candCap.getRevision());
+      }
+ catch (      ResolveException ex) {
+        if (rethrow == null) {
+          rethrow=ex;
+        }
+        itCandCap.remove();
+      }
+    }
+  }
+  if (candidates.isEmpty()) {
+    if (rethrow == null) {
+      rethrow=new ResolveException("Dynamic import failed.",revision,req);
+    }
+    throw rethrow;
+  }
+  m_populateResultCache.put(revision,Boolean.TRUE);
+}
+
+---------------
+//MNick predicted: parse clause
+//class: ManifestParser
+private static ParsedHeaderClause parseClause(int[] startIdx,String header){
+  ParsedHeaderClause clause=new ParsedHeaderClause(new ArrayList<String>(),new HashMap<String,String>(),new HashMap<String,Object>(),new HashMap<String,String>());
+  for (int i=startIdx[0]; i < header.length(); i++) {
+    char c=header.charAt(i);
+    if ((c == ':') || (c == '=')) {
+      parseClauseParameters(startIdx,header,clause);
+      i=startIdx[0];
+      break;
+    }
+ else     if ((c == ';') || (c == ',') || (i == (header.length() - 1))) {
+      String path;
+      if (i == (header.length() - 1)) {
+        path=header.substring(startIdx[0],header.length());
+      }
+ else {
+        path=header.substring(startIdx[0],i);
+      }
+      clause.m_paths.add(path.trim());
+      startIdx[0]=i + 1;
+      if (c == ',') {
+        break;
+      }
+    }
+  }
+  return clause;
+}
+
+---------------
+//MNick predicted: create artifacts panel
+//class: VaadinClient
+private ArtifactsPanel createArtifactsPanel(){
+  return new ArtifactsPanel(m_associations,this,m_cacheRate,m_pageLength){
+    @Override protected EditWindow createEditor(    final NamedObject object,    final List<UIExtensionFactory> extensions){
+      return new EditWindow("Edit Artifact",object,extensions){
+        @Override protected void handleError(        Exception e){
+          getWindow().showNotification("Failed to edit artifact!","<br/>Reason: " + e.getMessage(),Notification.TYPE_ERROR_MESSAGE);
+        }
+        @Override protected void onOk(        String name,        String description) throws Exception {
+          object.setDescription(description);
+        }
+      }
+;
+    }
+    @Override protected ArtifactRepository getRepository(){
+      return m_artifactRepository;
+    }
+    @Override protected RepositoryAdmin getRepositoryAdmin(){
+      return m_admin;
+    }
+  }
+;
+}
+
+---------------
+//MNick predicted: create register targets button
+//class: VaadinClient
+private Button createRegisterTargetsButton(){
+  final Button button=new Button("R");
+  button.setDisableOnClick(true);
+  button.setImmediate(true);
+  button.setEnabled(false);
+  button.addListener(new Button.ClickListener(){
+    @Override public void buttonClick(    ClickEvent event){
+      m_targetsPanel.registerSelectedTargets();
+    }
+  }
+);
+  m_targetsPanel.addListener(new ValueChangeListener(){
+    @Override public void valueChange(    ValueChangeEvent event){
+      TargetsPanel targetsPanel=(TargetsPanel)event.getProperty();
+      Collection<?> itemIDs=(Collection<?>)targetsPanel.getValue();
+      boolean enabled=false;
+      for (      Object itemID : itemIDs) {
+        if (targetsPanel.isItemRegistrationNeeded(itemID)) {
+          enabled=true;
+          break;
+        }
+      }
+      button.setEnabled(enabled);
+    }
+  }
+);
+  return button;
+}
+
+---------------

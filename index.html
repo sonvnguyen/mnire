@@ -1,0 +1,914 @@
+<!doctype html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <meta name="description" content="">
+      <meta name="author" content="">
+      <link rel="icon" href="img/logo.ico">
+      <title>MNire</title>
+      <!-- Bootstrap core CSS -->
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+      <!-- Custom styles for this template -->
+      <link href="carousel.css" rel="stylesheet">
+      <style>
+         p {
+         text-align: justify;
+         text-justify: inter-word;
+         }
+         .tt{
+         font-size: 10pt;
+         margin-top:10pt;
+         margin-bottom:5pt;				
+         font-style: italic;
+         text-align: center;
+         }
+         .col-md-6{
+         text-align: center;
+         }
+         h4{
+         margin-top: 1.5rem;
+         }
+      </style>
+      <!-- Global site tag (gtag.js) - Google Analytics -->
+      <script async src="https://www.googletagmanager.com/gtag/js?id=UA-76613177-2"></script>
+      <script>
+         window.dataLayer = window.dataLayer || [];
+         function gtag(){dataLayer.push(arguments);}
+         gtag('js', new Date());
+         
+         gtag('config', 'UA-76613177-2');
+      </script>
+   </head>
+   <body>
+      <header>
+         <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark" style="background-color:#001C27 !important">
+            <a class="navbar-brand" href="#abstract">
+               <!-- 		<img src="img/logo.png" style="height:35px"> -->
+               MNire
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+               <ul class="navbar-nav mr-auto">
+                  <li class="nav-item">
+                     <a class="nav-link" href="#exploratory">Empirical Study</a>
+                  </li>
+                  <li class="nav-item">
+                     <a class="nav-link" href="#experiments">Empirical Results</a>
+                  </li>
+                  <li class="nav-item">
+                     <a class="nav-link" href="#datasets">Datasets</a>
+                  </li>
+                  <li class="nav-item">
+                     <a class="nav-link" href="https://raw.githubusercontent.com/doubledoubleblind/mnick/master/example.txt">Examples</a>
+                  </li>
+                  </li>
+                  <li class="nav-item">
+                     <a class="nav-link" href="https://docs.google.com/spreadsheets/d/18ps2wWqWvqfPyvsaYfxoG1QAhPDEdybasCjIeH0RYww/edit?usp=sharing">Live Study</a>
+                  </li>
+               </ul>
+            </div>
+         </nav>
+      </header>
+      <main role="main">
+         <div id="myCarousel" class="carousel slide" data-ride="carousel">
+            <ol class="carousel-indicators">
+               <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+               <li data-target="#myCarousel" data-slide-to="1"></li>
+            </ol>
+            <div class="carousel-inner">
+               <div class="carousel-item active">
+                  <img class="first-slide" src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" alt="First slide">
+                  <div class="container">
+                     <div class="carousel-caption text-left">
+                        <h1>Key ideas:</h1>
+                        <p>
+                        <ul>
+                           <li><b>Naturalness of Names and Contexts</b>. We relies on the principle of naturalness of software for the words/tokens composing the names of the program entities and the method names.</li>
+                           <li><b>Abstractive Summarization</b>. In MNire, we consider the method name as the abstract on the method’s functionality, which is expressed via the contexts</li>
+                        </ul>
+                        </p>
+                        <p><a class="btn btn-lg btn-primary" href="#abstract" role="button">Details</a></p>
+                     </div>
+                  </div>
+               </div>
+               <div class="carousel-item">
+                  <img class="second-slide" src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" alt="Second slide">
+                  <div class="container">
+                     <div class="carousel-caption  text-left">
+                        <h1>Main interesting findings:</h1>
+                        <p>
+                        <ul>
+                           <li>
+                              To suggest a good method name, relying on the naturalness property of the program entities in the contexts yields better results than using the AST or PDG structures in the methods
+                           </li>
+                           <li>Method names are quite unique, so one cannot rely on searching for a good name in the data of the previously seen method names</li>
+                           <li>However, the tokens composing them are repeated frequently, so our generative direction is suitable to produce a new method name</li>
+                        </ul>
+                        </p>
+                        <p><a class="btn btn-lg btn-primary" href="#abstract" role="button">Details</a></p>
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <a class="carousel-control-prev" href="#myCarousel" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+            </a>
+            <a class="carousel-control-next" href="#myCarousel" role="button" data-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+            </a>
+         </div>
+         <div class="container marketing">
+            <!-- START THE FEATURETTES -->
+            <hr/>
+            <div class="row featurette">
+               <div class="col-md-1"></div>
+               <div class="col-md-10" id="abstract">
+                  <h2 class="featurette-heading" style="margin:2rem 2rem; text-align: center;">Suggesting Natural Method Names to Check Name Consistencies</h2>
+                  <p class="lead">
+                     Misleading names of the methods in a project or the APIs in a software 
+                     library confuse developers about program functionality and API usages, 
+                     leading to API misuses and defects. In this paper, we introduce MNire, 
+                     a machine learning approach to check the consistency between the name 
+                     of a given method and its implementation. MNire first generates a 
+                     candidate name and compares the current name against it. If the two 
+                     names are sufficiently similar, we consider the method as consistent. 
+                     To generate the method name, we draw our ideas and intuition from an 
+                     empirical study on the nature of method names in a large dataset. Our 
+                     key findings are that high proportions of the tokens of method names 
+                     can be found in the three contexts of a given method including its 
+                     body, the interface (the method's parameter types and return type), and 
+                     the enclosing class' name. Even when such tokens are not there, MNire 
+                     uses the contexts to predict the tokens due to the high co-occurrence 
+                     likelihoods. Our unique idea is to treat the name generation as an 
+                     abstract summarization on the tokens collected from the names of the 
+                     program entities in the three above contexts.
+                  </p>
+                  <p class="lead">
+                     We conducted several experiments to evaluate MNire in method name 
+                     consistency checking and in method name recommending on large datasets 
+                     with +14M methods. In detecting inconsistency method names, MNire 
+                     improves the state-of-the-art approach by 10.4% and 11% relatively in 
+                     recall and precision, respectively. In method name recommendation, 
+                     MNire improves relatively over the state-of-the-art technique, 
+                     code2vec, in both recall 18.2% higher and precision (11.1% higher). To 
+                     assess MNire's usefulness, we used it to detect inconsistent methods 
+                     and suggest new names in several active, GitHub projects. We made 50 
+                     pull requests and received 42 responses. Among them, 5 PRs were merged 
+                     into the main branch, and 13 were approved for later merging. In total, 
+                     in 31/42 cases, the developer teams agree that our suggested names are 
+                     more meaningful than the current names, showing MNire's usefulness.
+                  </p>
+               </div>
+               <div class="col-md-1"></div>
+            </div>
+            <hr class="featurette-divider">
+            <h3 class="featurette-heading" id="exploratory" style="margin-top:0rem;margin-bottom:2rem; text-align: center; font-size:35px;">Exploratory Study</h3>
+            <div class="row featurette">
+               <div class="col-md-7">
+                  <h4>Uniqueness of Method Names</h4>
+                  <p class="lead">
+                     <b>62.9%</b> of the full method names are unique. For a given method, one cannot rely on searching for a good name in the data of the previously seen method names.
+                  </p>
+                  <p class="lead">
+                     <b>78.1%</b> of the tokens in method names can be found in the other previously seen method names.
+                  </p>
+               </div>
+               <div class="col-md-5">
+                  <table class="table">
+                     <thead>
+                        <tr>
+                           <th></th>
+                           <th>Method name</th>
+                           <th>Token</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td style="text-align: left;">Mean #occcurrence</td>
+                           <td>4.8</td>
+                           <td>400.3</td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left;">Median #occcurrence</td>
+                           <td>1</td>
+                           <td>3</td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left;">#occcurrence = 1</td>
+                           <td><b>62.9%</b></td>
+                           <td>21.9%</td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left;">#occcurrence > 1</td>
+                           <td>37.1%</td>
+                           <td><b>78.1%</b></td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <hr class="featurette-divider">
+            <div class="row featurette">
+               <div class="col-md-6 order-md-1">
+                  <img class="featurette-image img-fluid mx-auto" src="img/fig4.png" alt="Generic placeholder image" style="max-width: 75%;">
+                  <div class = "tt"> % of tokens in method names found in contexts</div>
+               </div>
+               <div class="col-md-6 order-md-2">
+                  <img class="featurette-image img-fluid mx-auto" src="img/fig42.svg" alt="Generic placeholder image" style="max-width: 80%;">
+                  <div class = "tt">
+                     The percentages of the methods whose names share certain tokens with the contexts
+                  </div>
+               </div>
+            </div>
+            <div class="row featurette">
+               <div class="col-md-12 order-md-2">
+                  <h4>Common tokens shared between a method name and the contexts</h4>
+                  <p class="lead">There are high proportions of the tokens of method names which are shared with the three contexts. There are high percentages of the methods whose names share with the names of the entities in the contexts.</p>
+               </div>
+            </div>
+            <hr class="featurette-divider">
+            <div class="row featurette">
+               <div class="col-md-7">
+                  <h4>
+                     The conditional occurrences of tokens in method names on the contexts
+                  </h4>
+                  <p class="lead">When encountering all the tokens of the name of the program entities used in the body of a method, in 35.9% of the cases, we could see a token in the method’s name.</p>
+                  <p class="lead">Even the tokens are not found in the contexts, one could use the contexts to predict the tokens in the method names due to those high conditional probabilities.</p>
+                  <p class="lead">Each of the contexts could be used to provide the indication of the occurrences of the tokens in the good names more than those in the inconsistent names.</p>
+               </div>
+               <div class="col-md-5">
+                  <img class="featurette-image img-fluid mx-auto" src="img/fig5.svg" alt="Generic placeholder image" style="height:80%">
+                  <div class = "tt">Avg conditional occurrence of tokens in method names on the contexts</div>
+               </div>
+            </div>
+            <hr class="featurette-divider">
+            <h3 class="featurette-heading" id="experiments" style="margin-top:0rem;margin-bottom:2rem; text-align: center; font-size:35px;">Accuracy Comparison</h3>
+            <div class="row featurette">
+               <div class="col-md-4 order-md-1">
+                  <p class="lead">
+                     MNire outperformed the state-of-the-art approaches in both consistency checking and name recommending
+                  </p>
+                  <p class="lead">
+                     <b>43.1%</b> of the method names suggested exactly match with the oracle (while only <b>37.2%</b> of the method names occurring more than once)
+                  </p>
+                  <p class="lead">
+                     <b>13.1%</b> of the generated names that are not previously seen in the training data
+                  </p>
+               </div>
+               <div class="col-md-4 order-md-2">
+                  <div class = "tt">Consistency Checking Comparison Results (in %)</div>
+                  <table class="table">
+                     <thead>
+                        <tr>
+                           <th></th>
+                           <th></th>
+                           <th>Liu et al</th>
+                           <th>MNire</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td rowspan="3" style = "vertical-align:middle;"><b>IC</b></td>
+                           <td>Precision</td>
+                           <td>56.8</td>
+                           <td>62.7</td>
+                        </tr>
+                        <tr>
+                           <td>Recall</td>
+                           <td>84.5</td>
+                           <td>93.6</td>
+                        </tr>
+                        <tr>
+                           <td>F-score</td>
+                           <td>67.9</td>
+                           <td>75.1</td>
+                        </tr>
+                        <tr>
+                           <td rowspan="3" style = "vertical-align:middle;"><b>C</b></td>
+                           <td>Precision</td>
+                           <td>51.4</td>
+                           <td>56.0</td>
+                        </tr>
+                        <tr>
+                           <td>Recall</td>
+                           <td>72.2</td>
+                           <td>84.2</td>
+                        </tr>
+                        <tr>
+                           <td>F-score</td>
+                           <td>60.0</td>
+                           <td>67.3</td>
+                        </tr>
+                        <tr>
+                           <td colspan="2">Accuracy</td>
+                           <td>60.9</td>
+                           <td>68.9</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+               <div class="col-md-4 order-md-2">
+                  <div class = "tt">Name Recommending Comparison Results (in %)</div>
+                  <table class="table">
+                     <thead>
+                        <tr>
+                           <th></th>
+                           <th>code2vec</th>
+                           <th>MNire</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td>Precision</td>
+                           <td>63.1</td>
+                           <td>70.1</td>
+                        </tr>
+                        <tr>
+                           <td>Recall</td>
+                           <td>54.4</td>
+                           <td>64.3</td>
+                        </tr>
+                        <tr>
+                           <td>F-score</td>
+                           <td>58.4</td>
+                           <td>67.1</td>
+                        </tr>
+                        <tr>
+                           <td>Exact Match</td>
+                           <td>-</td>
+                           <td>43.1</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <h4 style="margin-top:1rem;margin-bottom:1rem; text-align: left;">Study on Accuracy by the Sizes of Methods</h4>
+            <div class="row featurette">
+               <div class="col-md-7">
+                  MNire works well on the methods with the regular sizes (1-25 LOCs). Even on the longer methods (+25 LOCs), MNire accuracy decreased gracefully with the precision and recall of 47.0% and 41.4% respectively.
+               </div>
+               <div class="col-md-5">
+                  <img class="featurette-image img-fluid mx-auto" src="img/size_study.svg" alt="Generic placeholder image" style="height:80%">
+                  <div class = "tt">MRire's accuracy in different methods' sizes</div>
+               </div>
+            </div>
+            <hr class="featurette-divider">
+            <h3 class="featurette-heading"  style="margin-top:0rem;margin-bottom:2.5rem; text-align: center; font-size:35px;">Context Analysis Evaluation Results</h3>
+            <div class="row featurette">
+               <div class="col-md-6 order-md-2">
+                  <div class = "tt">Impact of Contexts on MCC Results (in %)</div>
+                  <table class="table">
+                     <thead>
+                        <tr>
+                           <th></th>
+                           <th></th>
+                           <th>IMP</th>
+                           <th>IMP+INF</th>
+                           <th>IMP+ENC</th>
+                           <th>IMP+INF+ENC<br>=MNire</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td rowspan="3" style = "vertical-align:middle;"><b>IC</b></td>
+                           <td>Precision</td>
+                           <td>60.2</td>
+                           <td>61.7</td>
+                           <td>61.0</td>
+                           <td>62.7</td>
+                        </tr>
+                        <tr>
+                           <td>Recall</td>
+                           <td>90.0</td>
+                           <td>92.1</td>
+                           <td>91.3</td>
+                           <td>93.6</td>
+                        </tr>
+                        <tr>
+                           <td>F-score</td>
+                           <td>72.1</td>
+                           <td>73.9</td>
+                           <td>73.1</td>
+                           <td>75.1</td>
+                        </tr>
+                        <tr>
+                           <td rowspan="3" style = "vertical-align:middle;"><b>C</b></td>
+                           <td>Precision</td>
+                           <td>53.2</td>
+                           <td>55.1</td>
+                           <td>54.1</td>
+                           <td>56.0</td>
+                        </tr>
+                        <tr>
+                           <td>Recall</td>
+                           <td>79.3</td>
+                           <td>82.3</td>
+                           <td>80.6</td>
+                           <td>84.2</td>
+                        </tr>
+                        <tr>
+                           <td>F-score</td>
+                           <td>63.7</td>
+                           <td>66.0</td>
+                           <td>64.7</td>
+                           <td>67.3</td>
+                        </tr>
+                        <tr>
+                           <td colspan="2">Accuracy</td>
+                           <td>62.1</td>
+                           <td>65.2</td>
+                           <td>64.2</td>
+                           <td>68.9</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+               <div class="col-md-6 order-md-2">
+                  <div class = "tt">Impact of Contexts on MNR Results (in %)</div>
+                  <table class="table">
+                     <thead>
+                        <tr>
+                           <th></th>
+                           <th>IMP</th>
+                           <th>IMP+INF</th>
+                           <th>IMP+ENC</th>
+                           <th>IMP+INF+ENC<br>=MNire</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td>Precision</td>
+                           <td>49.7</td>
+                           <td>63.2</td>
+                           <td>54.4</td>
+                           <td>66.4</td>
+                        </tr>
+                        <tr>
+                           <td>Recall</td>
+                           <td>43.3</td>
+                           <td>57.8</td>
+                           <td>48.9</td>
+                           <td>61.1</td>
+                        </tr>
+                        <tr>
+                           <td>F-score</td>
+                           <td>46.3</td>
+                           <td>60.4</td>
+                           <td>51.5</td>
+                           <td>63.6</td>
+                        </tr>
+                        <tr>
+                           <td>Exact match</td>
+                           <td>20.2</td>
+                           <td>34.7</td>
+                           <td>25.7</td>
+                           <td>43.1</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <hr class="featurette-divider">
+            <h3 class="featurette-heading"  style="margin-top:0rem;margin-bottom:2.5rem; text-align: center; font-size:35px;">Sensitivity Results</h3>
+            <h4 style="margin-top:1rem;margin-bottom:1rem; text-align: left;">Accuracy with Different Representations</h4>
+            <div class="row featurette">
+               <div class="col-md-6 order-md-2">
+                  <div class = "tt">Impact of Representation on MCC Results (in %)</div>
+                  <table class="table">
+                     <thead>
+                        <tr>
+                           <th></th>
+                           <th></th>
+                           <th>Lexeme</th>
+                           <th>AST</th>
+                           <th>Graph</th>
+                           <th>MNire</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td rowspan="3" style = "vertical-align:middle;"><b>IC</b></td>
+                           <td>Precision</td>
+                           <td>59.0</td>
+                           <td>57.2</td>
+                           <td>55.3</td>
+                           <td>62.7</td>
+                        </tr>
+                        <tr>
+                           <td>Recall</td>
+                           <td>88.3</td>
+                           <td>85.6</td>
+                           <td>80.3</td>
+                           <td>93.6</td>
+                        </tr>
+                        <tr>
+                           <td>F-score</td>
+                           <td>70.7</td>
+                           <td>68.6</td>
+                           <td>65.5</td>
+                           <td>75.1</td>
+                        </tr>
+                        <tr>
+                           <td rowspan="3" style = "vertical-align:middle;"><b>C</b></td>
+                           <td>Precision</td>
+                           <td>47.1</td>
+                           <td>46.2</td>
+                           <td>45.8</td>
+                           <td>56.0</td>
+                        </tr>
+                        <tr>
+                           <td>Recall</td>
+                           <td>78.2</td>
+                           <td>73.5</td>
+                           <td>72.1</td>
+                           <td>84.2</td>
+                        </tr>
+                        <tr>
+                           <td>F-score</td>
+                           <td>58.8</td>
+                           <td>56.8</td>
+                           <td>56.0</td>
+                           <td>67.3</td>
+                        </tr>
+                        <tr>
+                           <td colspan="2">Accuracy</td>
+                           <td>52.0</td>
+                           <td>51.1</td>
+                           <td>50.5</td>
+                           <td>68.9</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+               <div class="col-md-6 order-md-2">
+                  <div class = "tt">Impact of Representation on MNR Results (in %)</div>
+                  <table class="table">
+                     <thead>
+                        <tr>
+                           <th></th>
+                           <th>Lexeme</th>
+                           <th>AST</th>
+                           <th>Graph</th>
+                           <th>MNire</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td>Precision</td>
+                           <td>29.5</td>
+                           <td>23.1</td>
+                           <td>16.2</td>
+                           <td>50.6</td>
+                        </tr>
+                        <tr>
+                           <td>Recall</td>
+                           <td>25.1</td>
+                           <td>29.2</td>
+                           <td>30.3</td>
+                           <td>45.1</td>
+                        </tr>
+                        <tr>
+                           <td>F-score</td>
+                           <td>27.1</td>
+                           <td>25.9</td>
+                           <td>21.1</td>
+                           <td>47.7</td>
+                        </tr>
+                        <tr>
+                           <td>Exact Match</td>
+                           <td>9.1</td>
+                           <td>8.1</td>
+                           <td>4.7</td>
+                           <td>22.1</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <div class="row featurette">
+               <div class="col-md-12 order-md-2">
+                  <p class="lead">This result suggests that the naturalness of names is more important to the problem of method name suggestion. 
+                     While structures and dependencies are important for code execution, to suggest a method name, which is the abstract of entire method, using tokensof the names in the contexts as in MNire yields better performance.
+                  </p>
+               </div>
+            </div>
+            <h4 style="margin-top:1rem;margin-bottom:1rem; text-align: left;">Impact of Contexts' Size and Lengths of Tokens in Contexts on Accuracy</h4>
+            <div class="row featurette">
+               <div class="col-md-6 order-md-2">
+                  <div class = "tt">Impact of Context's Size on MNR Results (in %)</div>
+                  <table class="table">
+                     <thead>
+                        <tr>
+                           <th></th>
+                           <th></th>
+                           <th>1-10 tokens</th>
+                           <th>10-20 tokens</th>
+                           <th>20-30 tokens</th>
+                           <th>+30 tokens</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td>F-score</td>
+                           <td>35.9</td>
+                           <td>41.1</td>
+                           <td>43.2</td>
+                           <td>51.0</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+               <div class="col-md-6 order-md-2">
+                  <div class = "tt">Impact of Tokens' Length on MNR Results (in %)</div>
+                  <table class="table">
+                     <thead>
+                        <tr>
+                           <th></th>
+                           <th></th>
+                           <th>0-80%</th>
+                           <th>80-90%</th>
+                           <th>90-95%</th>
+                           <th>+95%</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td>F-score</td>
+                           <td>37.0</td>
+                           <td>39.4</td>
+                           <td>42.5</td>
+                           <td>48.5</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <h4 style="margin-top:1rem;margin-bottom:1rem; text-align: left;">Impact of Training Data’s Size on Accuracy</h4>
+            <div class="row featurette">
+               <div class="col-md-6 order-md-2">
+                  <div class = "tt">Impact of Representation on MCC Results (in %)</div>
+                  <table class="table">
+                     <thead>
+                        <tr>
+                           <th></th>
+                           <th></th>
+                           <th>1.0M</th>
+                           <th>1.25M</th>
+                           <th>1.5M</th>
+                           <th>1.75M</th>
+                           <th>2.0M</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td rowspan="3" style = "vertical-align:middle;"><b>IC</b></td>
+                           <td>Precision</td>
+                           <td>59.6</td>
+                           <td>60.1</td>
+                           <td>60.3</td>
+                           <td>61.5</td>
+                           <td>62.7</td>
+                        </tr>
+                        <tr>
+                           <td>Recall</td>
+                           <td>92.2</td>
+                           <td>92.5</td>
+                           <td>93.2</td>
+                           <td>93.4</td>
+                           <td>93.6</td>
+                        </tr>
+                        <tr>
+                           <td>F-score</td>
+                           <td>72.4</td>
+                           <td>72.9</td>
+                           <td>73.2</td>
+                           <td>74.2</td>
+                           <td>75.1</td>
+                        </tr>
+                        <tr>
+                           <td rowspan="3" style = "vertical-align:middle;"><b>C</b></td>
+                           <td>Precision</td>
+                           <td>52.7</td>
+                           <td>53.5</td>
+                           <td>54.4</td>
+                           <td>55.2</td>
+                           <td>56.0</td>
+                        </tr>
+                        <tr>
+                           <td>Recall</td>
+                           <td>81.4</td>
+                           <td>81.9</td>
+                           <td>82.6</td>
+                           <td>83.5</td>
+                           <td>84.2</td>
+                        </tr>
+                        <tr>
+                           <td>F-score</td>
+                           <td>63.9</td>
+                           <td>64.7</td>
+                           <td>65.6</td>
+                           <td>66.5</td>
+                           <td>67.3</td>
+                        </tr>
+                        <tr>
+                           <td colspan="2">Accuracy</td>
+                           <td>62.6</td>
+                           <td>63.8</td>
+                           <td>65.8</td>
+                           <td>67.3</td>
+                           <td>68.9</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+               <div class="col-md-6 order-md-2">
+                  <div class = "tt">Impact of Representation on MNR Results (in %)</div>
+                  <table class="table">
+                     <thead>
+                        <tr>
+                           <th></th>
+                           <th>1.0K</th>
+                           <th>2.5K</th>
+                           <th>5.0K</th>
+                           <th>7.5K</th>
+                           <th>10.0K</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td>Precision</td>
+                           <td>41.1</td>
+                           <td>56.2</td>
+                           <td>63.1</td>
+                           <td>64.9</td>
+                           <td>66.4</td>
+                        </tr>
+                        <tr>
+                           <td>Recall</td>
+                           <td>47.8</td>
+                           <td>53.7</td>
+                           <td>57.6</td>
+                           <td>59.5</td>
+                           <td>61.1</td>
+                        </tr>
+                        <tr>
+                           <td>F-score</td>
+                           <td>44.2</td>
+                           <td>54.9</td>
+                           <td>60.2</td>
+                           <td>62.0</td>
+                           <td>63.6</td>
+                        </tr>
+                        <tr>
+                           <td>Exact Match</td>
+                           <td>19.9</td>
+                           <td>29.4</td>
+                           <td>34.8</td>
+                           <td>26.9</td>
+                           <td>38.2</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <h4 style="margin-top:1rem;margin-bottom:1rem; text-align: left;">Impact of Threshold for consistency checking</h4>
+            <div class="row featurette">
+               <div class="col-md-2 order-md-2"></div>
+               <div class="col-md-8 order-md-2">
+                  <img class="featurette-image img-fluid mx-auto" src="img/chart_threshold.svg" alt="Generic placeholder image">
+                  <div class = "tt">
+                     Impact of Threshold on MCC results
+                  </div>
+               </div>
+               <div class="col-md-2 order-md-2"></div>
+            </div>
+            <hr class="featurette-divider">
+            <h3 class="featurette-heading" id="datasets" style="margin-top:0rem;margin-bottom:2.5rem; text-align: center; font-size:35px;">Datasets</h3>
+            <div class="row featurette">
+               <div class="col-md-6 order-md-2">
+                  <div class = "tt">Corpus for Method Name Consistency Checking (<a href="test_1.zip">Download</a>)</div>
+                  <table class="table">
+                     <thead>
+                        <tr>
+                           <th></th>
+                           <th>Test data</th>
+                           <th>Train data</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td style="text-align:left">#Methods</td>
+                           <td>2,700</td>
+                           <td>1,962,872</td>
+                        </tr>
+                        <tr>
+                           <td style="text-align:left">#Files</td>
+                           <td>-</td>
+                           <td>250,972</td>
+                        </tr>
+                        <tr>
+                           <td style="text-align:left">#Projects</td>
+                           <td>-</td>
+                           <td>430</td>
+                        </tr>
+                        <tr>
+                           <td style="text-align:left">#Unique method names</td>
+                           <td>-</td>
+                           <td>540,237</td>
+                        </tr>
+                        <tr>
+                           <td style="text-align:left">#occurence &gt; 1</td>
+                           <td>-</td>
+                           <td>33.5%</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+               <div class="col-md-6 order-md-2">
+                  <div class = "tt">Corpus for Method Name Recommending</div>
+                  <table class="table">
+                     <thead>
+                        <tr>
+                           <th></th>
+                           <th>Test data</th>
+                           <th>Train data</th>
+                           <th>Total</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td colspan="4" style="font-weight:bold">Comparison Experiment with <span style="font-style:italic">code2vec</span> (<a href="test_2.zip">Download</a>)</td>
+                        </tr>
+                        <tr>
+                           <td style="text-align:left">#Files</td>
+                           <td>61,641</td>
+                           <td>1,746,272</td>
+                           <td>1,807,913</td>
+                        </tr>
+                        <tr>
+                           <td style="text-align:left">#Methods</td>
+                           <td>458,800</td>
+                           <td>14,000,028</td>
+                           <td>14,458,828</td>
+                        </tr>
+                        <tr>
+                           <td colspan="4" style="font-weight:bold">Experiments for RQ4, RQ5, and RQ6 (<a href="test_2.zip">Download</a>)</td>
+                        </tr>
+                        <tr>
+                           <td style="text-align:left">#Projects</td>
+                           <td>450</td>
+                           <td>9,772</td>
+                           <td>10,222</td>
+                        </tr>
+                        <tr>
+                           <td style="text-align:left">#Files</td>
+                           <td>51,631</td>
+                           <td>1,756,282</td>
+                           <td>1,807,913</td>
+                        </tr>
+                        <tr>
+                           <td style="text-align:left">#Methods</td>
+                           <td>466,800</td>
+                           <td>13,992,028</td>
+                           <td>14,458,828</td>
+                        </tr>
+                        <tr>
+                           <td colspan="4" style="font-weight:bold">Live Study on Real Developers (<a href="repos_RQ7.txt">Download</a>)</td>
+                        </tr>
+                        <tr>
+                           <td style="text-align:left">#Projects</td>
+                           <td>100</td>
+                           <td>-</td>
+                           <td>100</td>
+                        </tr>
+                        <tr>
+                           <td style="text-align:left">#Files</td>
+                           <td>18,980</td>
+                           <td>-</td>
+                           <td>18,980</td>
+                        </tr>
+                        <tr>
+                           <td style="text-align:left">#Methods</td>
+                           <td>139,827</td>
+                           <td>-</td>
+                           <td>139,827</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <hr class="featurette-divider">
+            <!-- /END THE FEATURETTES -->
+         </div>
+         <!-- /.container -->
+      </main>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+   </body>
+</html>
